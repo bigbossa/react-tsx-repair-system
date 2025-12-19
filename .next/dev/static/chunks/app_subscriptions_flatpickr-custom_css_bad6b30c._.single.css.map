@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/app/subscriptions/flatpickr-custom.css"],"sourcesContent":["/* Custom Flatpickr styles to ensure calendar is clickable */\r\n.flatpickr-calendar {\r\n  z-index: 99999 !important;\r\n  position: absolute !important;\r\n}\r\n\r\n.flatpickr-calendar.open {\r\n  z-index: 99999 !important;\r\n}\r\n\r\n.flatpickr-day {\r\n  cursor: pointer !important;\r\n  pointer-events: auto !important;\r\n}\r\n\r\n.flatpickr-day:hover {\r\n  background: #e6e6e6 !important;\r\n  border-color: #e6e6e6 !important;\r\n}\r\n"],"names":[],"mappings":"AACA;;;;;AAKA;;;;AAIA;;;;;AAKA"}}]
+}

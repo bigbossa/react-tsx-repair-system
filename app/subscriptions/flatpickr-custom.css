@@ -1,0 +1,19 @@
+/* Custom Flatpickr styles to ensure calendar is clickable */
+.flatpickr-calendar {
+  z-index: 99999 !important;
+  position: absolute !important;
+}
+
+.flatpickr-calendar.open {
+  z-index: 99999 !important;
+}
+
+.flatpickr-day {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.flatpickr-day:hover {
+  background: #e6e6e6 !important;
+  border-color: #e6e6e6 !important;
+}

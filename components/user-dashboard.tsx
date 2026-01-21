@@ -1,30 +1,34 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { apiFetch } from "@/lib/api"
 import type { Ticket } from "@/lib/types"
 import { UserTicketForm } from "./user-ticket-form"
 import { TicketCard } from "./ticket-card"
 import { TicketDetail } from "./ticket-detail"
 import { useAuth } from "@/app/auth-context"
 import Swal from "sweetalert2"
+import { formatDateThai } from "@/lib/utils"
 
 export function UserDashboard() {
   const { user } = useAuth()
   const [tickets, setTickets] = useState<Ticket[]>([])
+  const [maintenanceFeedbacks, setMaintenanceFeedbacks] = useState<any[]>([])
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
-  const [activeTab, setActiveTab] = useState<"active" | "assessment" | "completed">("active")
+  const [activeTab, setActiveTab] = useState<"active" | "assessment" | "ma-feedback" | "completed">("active")
 
   useEffect(() => {
     if (user?.name) {
       fetchTickets()
+      fetchPendingFeedbacks()
     }
   }, [user?.name])
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch("/api/tickets")
+      const response = await apiFetch("/api/tickets")
       const data = await response.json()
       // Filter tickets by current user's username
       const dataArray = Array.isArray(data) ? data : []
@@ -33,6 +37,23 @@ export function UserDashboard() {
     } catch (error) {
       console.error("Failed to fetch tickets:", error)
       setTickets([])
+    }
+  }
+
+  const fetchPendingFeedbacks = async () => {
+    try {
+      const response = await apiFetch(`/api/maintenance-records?user_name=${encodeURIComponent(user?.name || '')}`)
+      const result = await response.json()
+      if (result.success) {
+        // กรองเฉพาะ records ที่ยังไม่ได้ประเมิน
+        const pendingRecords = result.data.filter((record: any) => {
+          return !record.feedback_id // ไม่มี feedback_id หมายความว่ายังไม่ได้ประเมิน
+        })
+        setMaintenanceFeedbacks(pendingRecords)
+      }
+    } catch (error) {
+      console.error("Failed to fetch maintenance feedbacks:", error)
+      setMaintenanceFeedbacks([])
     }
   }
 
@@ -137,7 +158,7 @@ export function UserDashboard() {
   const handleSubmitTicket = async (data: any) => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/tickets", {
+      const response = await apiFetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -180,7 +201,7 @@ export function UserDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form */}
         <div className="lg:col-span-1">
-          <UserTicketForm onSubmit={handleSubmitTicket} isLoading={isLoading} userName={user?.name || ""} userId={user?.id || ""} />
+          <UserTicketForm onSubmit={handleSubmitTicket} isLoading={isLoading} userName={user?.name || ""} userId={user?.username || user?.id || ""} />
         </div>
 
         {/* Tickets */}
@@ -208,6 +229,16 @@ export function UserDashboard() {
                   }`}
                 >
                   รอการประเมิน ({tickets.filter(t => t.Status === 4).length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("ma-feedback")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === "ma-feedback"
+                      ? "bg-green-600 text-white"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  ประเมิน MA ({maintenanceFeedbacks.length})
                 </button>
                 <button
                   onClick={() => setActiveTab("completed")}
@@ -299,6 +330,65 @@ export function UserDashboard() {
                           <TicketCard ticket={ticket} />
                         </div>
                       ))
+                  )
+                ) : activeTab === "ma-feedback" ? (
+                  maintenanceFeedbacks.length === 0 ? (
+                    <p className="text-muted-foreground">ไม่มีแบบประเมิน MA ที่รอดำเนินการ</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {maintenanceFeedbacks.map((record) => (
+                        <div 
+                          key={record.id} 
+                          className="border rounded-lg p-4 bg-gradient-to-r from-green-50 to-emerald-50 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-2 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  ✅ MA เสร็จสิ้น
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  {formatDateThai(record.checked_at, 'long')}
+                                </span>
+                              </div>
+                              <h3 className="font-semibold text-lg">{record.device_name}</h3>
+                              <div className="grid grid-cols-2 gap-2 text-sm">
+                                <div>
+                                  <span className="text-gray-500">รหัสทรัพย์สิน:</span>
+                                  <span className="ml-2 font-medium">{record.asset_code}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">ผู้ดำเนินการ:</span>
+                                  <span className="ml-2 font-medium">{record.checked_by}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">สาขา:</span>
+                                  <span className="ml-2 font-medium">{record.site}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500">แผนก:</span>
+                                  <span className="ml-2 font-medium">{record.department}</span>
+                                </div>
+                              </div>
+                              {record.remarks && (
+                                <div className="mt-2 text-sm">
+                                  <span className="text-gray-500">หมายเหตุ:</span>
+                                  <p className="ml-2 text-gray-700">{record.remarks}</p>
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => {
+                                window.open(`/repair/maintenance-feedback?token=${record.feedback_token}&id=${record.id}`, '_blank')
+                              }}
+                              className="ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+                            >
+                              ⭐ ประเมินความพึงพอใจ
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )
                 ) : activeTab === "assessment" ? (
                   tickets.filter(t => t.Status === 4).length === 0 ? (

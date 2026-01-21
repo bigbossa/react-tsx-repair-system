@@ -8,17 +8,79 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params
-    const result = await queryRepair(
+    console.log('========== GET TICKET DEBUG ==========')
+    console.log('Searching for ticket ID:', id)
+    
+    // First, let's see what columns exist and sample data
+    const sampleResult = await queryRepair(
+      'SELECT * FROM repairrequest LIMIT 5'
+    )
+    console.log('Sample columns:', sampleResult.rows.length > 0 ? Object.keys(sampleResult.rows[0]) : 'No data')
+    console.log('Sample IDs:', sampleResult.rows.map(r => ({
+      request_id: r.request_id,
+      Request_ID: r.Request_ID,
+      asset_id: r.asset_id
+    })))
+    
+    // Try multiple column name variations
+    let result = await queryRepair(
       'SELECT * FROM repairrequest WHERE request_id = $1',
       [id]
     )
+    console.log('Try 1 (request_id):', result.rows.length)
+    
+    // If not found, try with "Request_ID" (capital)
+    if (result.rows.length === 0) {
+      result = await queryRepair(
+        'SELECT * FROM repairrequest WHERE "Request_ID" = $1',
+        [id]
+      )
+      console.log('Try 2 (Request_ID):', result.rows.length)
+    }
+    
+    // Try with asset_id
+    if (result.rows.length === 0) {
+      result = await queryRepair(
+        'SELECT * FROM repairrequest WHERE asset_id = $1',
+        [id]
+      )
+      console.log('Try 3 (asset_id):', result.rows.length)
+    }
+    
+    // If still not found, try case-insensitive search on request_id
+    if (result.rows.length === 0) {
+      result = await queryRepair(
+        'SELECT * FROM repairrequest WHERE LOWER(request_id) = LOWER($1)',
+        [id]
+      )
+      console.log('Try 4 (case-insensitive request_id):', result.rows.length)
+    }
+    
+    // Try LIKE search
+    if (result.rows.length === 0) {
+      result = await queryRepair(
+        'SELECT * FROM repairrequest WHERE request_id ILIKE $1',
+        [`%${id}%`]
+      )
+      console.log('Try 5 (ILIKE):', result.rows.length)
+    }
     
     if (result.rows.length === 0) {
-      return NextResponse.json({ error: "Ticket not found" }, { status: 404 })
+      console.log('❌ Ticket not found:', id)
+      console.log('======================================')
+      return NextResponse.json({ error: "Ticket not found", searchedId: id }, { status: 404 })
     }
+    
+    console.log('✅ Found ticket:', {
+      request_id: result.rows[0].request_id,
+      asset_id: result.rows[0].asset_id,
+      status: result.rows[0].Status
+    })
+    console.log('======================================')
     return NextResponse.json(result.rows[0])
   } catch (error) {
-    console.error('Failed to fetch ticket:', error)
+    console.error('❌ Failed to fetch ticket:', error)
+    console.log('======================================')
     return NextResponse.json({ error: "Failed to fetch ticket" }, { status: 500 })
   }
 }
@@ -30,14 +92,58 @@ export async function PUT(
   try {
     const { id } = await context.params
     const data = await request.json()
+    
+    console.log('========== PUT TICKET DEBUG ==========')
+    console.log('Updating ticket ID:', id)
+    console.log('Update data:', JSON.stringify(data, null, 2))
 
     const allowedStatusValues = ['0','1','2','3','4',0,1,2,3,4]
     
-    // ดึงข้อมูลเก่าก่อนอัปเดต (เพื่อเช็คสถานะเดิม)
-    const oldTicketResult = await queryRepair(
-      'SELECT "Status", username FROM repairrequest WHERE request_id = $1',
+    // ดึงข้อมูลเก่าก่อนอัปเดต (เพื่อเช็คสถานะเดิม) - ลองหลายรูปแบบ
+    let oldTicketResult = await queryRepair(
+      'SELECT "Status", username, request_id FROM repairrequest WHERE request_id = $1',
       [id]
     )
+    console.log('Try finding by request_id:', oldTicketResult.rows.length)
+    
+    // If not found, try with "Request_ID" (capital)
+    if (oldTicketResult.rows.length === 0) {
+      oldTicketResult = await queryRepair(
+        'SELECT "Status", username, "Request_ID" as request_id FROM repairrequest WHERE "Request_ID" = $1',
+        [id]
+      )
+      console.log('Try finding by Request_ID:', oldTicketResult.rows.length)
+    }
+    
+    // Try with asset_id
+    if (oldTicketResult.rows.length === 0) {
+      oldTicketResult = await queryRepair(
+        'SELECT "Status", username, request_id FROM repairrequest WHERE asset_id = $1',
+        [id]
+      )
+      console.log('Try finding by asset_id:', oldTicketResult.rows.length)
+    }
+    
+    // If still not found, try case-insensitive
+    if (oldTicketResult.rows.length === 0) {
+      oldTicketResult = await queryRepair(
+        'SELECT "Status", username, request_id FROM repairrequest WHERE LOWER(request_id) = LOWER($1)',
+        [id]
+      )
+      console.log('Try finding by case-insensitive:', oldTicketResult.rows.length)
+    }
+    
+    if (oldTicketResult.rows.length === 0) {
+      console.log('❌ Ticket not found for update:', id)
+      console.log('======================================')
+      return NextResponse.json({ 
+        error: "Ticket not found", 
+        searchedId: id,
+        message: "ไม่พบรายการซ่อมนี้ในระบบ กรุณาตรวจสอบรหัสรายการซ่อม"
+      }, { status: 404 })
+    }
+    
+    console.log('✅ Found ticket:', oldTicketResult.rows[0])
     const oldStatus = oldTicketResult.rows.length > 0 ? String(oldTicketResult.rows[0].Status) : null
     const username = oldTicketResult.rows.length > 0 ? oldTicketResult.rows[0].username : null
     
@@ -218,7 +324,10 @@ export async function PUT(
     
     values.push(id)
     
-    const result = await queryRepair(
+    console.log('Executing UPDATE query with:', { updates, values })
+    
+    // Try to update with request_id
+    let result = await queryRepair(
       `UPDATE repairrequest 
        SET ${updates.join(', ')} 
        WHERE request_id = $${paramCount} 
@@ -226,9 +335,34 @@ export async function PUT(
       values
     )
     
+    // If not updated, try with "Request_ID"
     if (result.rows.length === 0) {
+      result = await queryRepair(
+        `UPDATE repairrequest 
+         SET ${updates.join(', ')} 
+         WHERE "Request_ID" = $${paramCount} 
+         RETURNING *`,
+        values
+      )
+    }
+    
+    // If still not updated, try case-insensitive
+    if (result.rows.length === 0) {
+      result = await queryRepair(
+        `UPDATE repairrequest 
+         SET ${updates.join(', ')} 
+         WHERE UPPER(request_id) = UPPER($${paramCount}) 
+         RETURNING *`,
+        values
+      )
+    }
+    
+    if (result.rows.length === 0) {
+      console.log('Failed to update - ticket not found:', id)
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 })
     }
+    
+    console.log('Successfully updated ticket:', result.rows[0])
     
     // ส่งการแจ้งเตือนถ้าสถานะเปลี่ยน
     if (newStatus && oldStatus && newStatus !== oldStatus && username) {

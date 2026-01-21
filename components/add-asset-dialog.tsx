@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiFetch } from '@/lib/api'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,6 +23,7 @@ export function AddAssetDialog({ open, onOpenChange, onSuccess, departments = []
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     asset_code: '',
+    user_id: '',
     user_name: '',
     company: '',
     site: '',
@@ -52,7 +54,7 @@ export function AddAssetDialog({ open, onOpenChange, onSuccess, departments = []
     setLoading(true)
 
     try {
-      const response = await fetch('/api/assets', {
+      const response = await apiFetch('/api/assets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -67,6 +69,7 @@ export function AddAssetDialog({ open, onOpenChange, onSuccess, departments = []
         // Reset form
         setFormData({
           asset_code: '',
+          user_id: '',
           user_name: '',
           company: '',
           site: '',
@@ -125,6 +128,16 @@ export function AddAssetDialog({ open, onOpenChange, onSuccess, departments = []
                 value={formData.asset_code}
                 onChange={(e) => handleChange('asset_code', e.target.value)}
                 required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="user_id">รหัสพนักงาน</Label>
+              <Input
+                id="user_id"
+                value={formData.user_id}
+                onChange={(e) => handleChange('user_id', e.target.value)}
+                placeholder="เช่น Y510106"
               />
             </div>
 

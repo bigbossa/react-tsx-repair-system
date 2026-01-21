@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/auth-context'
+import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Search, Loader2, ArrowLeft, Plus, Pencil, Trash2, Monitor } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Loader2, Plus, Upload, Monitor } from 'lucide-react'
 import Swal from 'sweetalert2'
+import { AppHeader } from '@/components/app-header'
+import * as XLSX from 'xlsx'
+import { UsersDataTable } from '@/components/users-data-table'
 
 interface User {
   iduser: number
@@ -27,11 +27,9 @@ export default function UsersPage() {
   const { user, logout } = useAuth()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [filterSite, setFilterSite] = useState('all')
-  const [filterDepartment, setFilterDepartment] = useState('all')
   const [sites, setSites] = useState<Array<{ site_code: string; site: string }>>([])
   const [viewAsset, setViewAsset] = useState<any | null>(null)
+  const [importing, setImporting] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -47,10 +45,7 @@ export default function UsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (search) params.append('search', search)
-      
-      const response = await fetch(`/api/users?${params.toString()}`)
+      const response = await apiFetch('/api/users')
       const result = await response.json()
       
       if (result.success) {
@@ -64,7 +59,7 @@ export default function UsersPage() {
   }
   const fetchSites = async () => {
     try {
-      const response = await fetch('/api/sites')
+      const response = await apiFetch('/api/sites')
       const result = await response.json()
       if (result.success && Array.isArray(result.data)) {
         setSites(result.data)
@@ -73,18 +68,137 @@ export default function UsersPage() {
       console.error('Error fetching sites:', err)
     }
   }
-  useEffect(() => {
-    const delaySearch = setTimeout(() => {
-      if (user?.role === 'admin') {
-        fetchUsers()
-      }
-    }, 300)
-    return () => clearTimeout(delaySearch)
-  }, [search])
 
   const handleLogout = () => {
     logout()
     router.push("/")
+  }
+
+  // จัดการสาขาที่ Admin รับผิดชอบ
+  const handleManageSites = async (editUser: User) => {
+    // ดึงสาขาที่ user นี้รับผิดชอบอยู่
+    let currentSites: string[] = []
+    try {
+      const response = await apiFetch(`/api/admin-sites?user_id=${encodeURIComponent(editUser.user_login)}`)
+      const result = await response.json()
+      if (result.success && result.data) {
+        currentSites = result.data.map((item: any) => item.site_code)
+      }
+    } catch (error) {
+      console.error('Error fetching admin sites:', error)
+    }
+
+    const { value: selectedSites } = await Swal.fire({
+      title: 'กำหนดสาขาที่รับผิดชอบ',
+      html: `
+        <style>
+          .sites-container {
+            max-height: 400px;
+            overflow-y: auto;
+            text-align: left;
+            padding: 10px;
+          }
+          .site-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+          }
+          .site-checkbox:hover {
+            background-color: #f3f4f6;
+          }
+          .site-checkbox input {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+          }
+          .site-checkbox label {
+            cursor: pointer;
+            font-size: 14px;
+          }
+          .user-info {
+            background: #e0e7ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+          }
+          .select-all-btn {
+            margin-bottom: 10px;
+          }
+        </style>
+        <div class="user-info">
+          <strong>ผู้ใช้:</strong> ${editUser.name} (${editUser.user_login})
+        </div>
+        <div style="margin-bottom: 10px;">
+          <button type="button" class="swal2-styled swal2-default-outline" onclick="
+            const checkboxes = document.querySelectorAll('.site-input');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+          " style="font-size: 12px; padding: 6px 12px;">
+            เลือก/ยกเลิกทั้งหมด
+          </button>
+        </div>
+        <div class="sites-container">
+          ${sites.map(s => `
+            <div class="site-checkbox" onclick="
+              const cb = this.querySelector('input');
+              cb.checked = !cb.checked;
+            ">
+              <input type="checkbox" class="site-input" value="${s.site_code}" 
+                ${currentSites.includes(s.site_code) ? 'checked' : ''} 
+                onclick="event.stopPropagation()">
+              <label>${s.site} (${s.site_code})</label>
+            </div>
+          `).join('')}
+        </div>
+      `,
+      width: '500px',
+      showCancelButton: true,
+      confirmButtonText: 'บันทึก',
+      cancelButtonText: 'ยกเลิก',
+      preConfirm: () => {
+        const checkboxes = document.querySelectorAll('.site-input:checked') as NodeListOf<HTMLInputElement>
+        return Array.from(checkboxes).map(cb => cb.value)
+      }
+    })
+
+    if (selectedSites !== undefined) {
+      try {
+        const response = await apiFetch('/api/admin-sites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: editUser.user_login,
+            site_codes: selectedSites
+          })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'สำเร็จ',
+            text: `กำหนดสาขาที่รับผิดชอบ ${selectedSites.length} สาขา`,
+            timer: 2000
+          })
+        } else {
+          throw new Error(result.error)
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถบันทึกข้อมูลได้'
+        })
+      }
+    }
   }
 
   const handleEdit = async (editUser: User) => {
@@ -234,7 +348,7 @@ export default function UsersPage() {
           updateData.password = formValues.password
         }
 
-        const response = await fetch(`/api/users/${editUser.iduser}`, {
+        const response = await apiFetch(`/api/users/${editUser.iduser}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updateData)
@@ -401,7 +515,7 @@ export default function UsersPage() {
 
     if (formValues) {
       try {
-        const response = await fetch('/api/users', {
+        const response = await apiFetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -445,7 +559,7 @@ export default function UsersPage() {
     try {
       // ใช้ user_login ถ้า userid เป็น null
       const userId = user.userid || user.user_login
-      const response = await fetch(`/api/assets?user_id=${encodeURIComponent(userId)}&user_name=${encodeURIComponent(user.name)}`)
+      const response = await apiFetch(`/api/assets?user_id=${encodeURIComponent(userId)}&user_name=${encodeURIComponent(user.name)}`)
       const result = await response.json()
       
       if (result.success && result.data) {
@@ -546,7 +660,7 @@ export default function UsersPage() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`/api/users/${user.iduser}`, {
+        const response = await apiFetch(`/api/users/${user.iduser}`, {
           method: 'DELETE'
         })
 
@@ -577,38 +691,210 @@ export default function UsersPage() {
     }
   }
 
+  // ดาวน์โหลด Template Excel
+  const handleDownloadTemplate = () => {
+    const templateData = [
+      {
+        username: 'user001',
+        password: 'password123',
+        name: 'ชื่อ นามสกุล',
+        role: 'user',
+        site: 'HEAD',
+        department: 'IT'
+      },
+      {
+        username: 'admin001',
+        password: 'admin123',
+        name: 'ผู้ดูแลระบบ',
+        role: 'admin',
+        site: 'HEAD',
+        department: 'IT'
+      }
+    ]
+
+    const worksheet = XLSX.utils.json_to_sheet(templateData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Users')
+    
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 15 }, // username
+      { wch: 15 }, // password
+      { wch: 25 }, // name
+      { wch: 10 }, // role
+      { wch: 15 }, // site
+      { wch: 15 }, // department
+    ]
+
+    XLSX.writeFile(workbook, 'users_template.xlsx')
+  }
+
+  // Import จาก Excel
+  const handleImportExcel = async () => {
+    const { value: file } = await Swal.fire({
+      title: 'นำเข้าข้อมูลจาก Excel',
+      html: `
+        <div style="text-align: left; padding: 10px 0;">
+          <p style="margin-bottom: 15px; color: #6b7280;">
+            เลือกไฟล์ Excel (.xlsx, .xls) ที่มีข้อมูลผู้ใช้
+          </p>
+          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px; margin-bottom: 15px;">
+            <p style="font-weight: 600; color: #0369a1; margin-bottom: 8px;">📋 รูปแบบข้อมูลที่รองรับ:</p>
+            <ul style="font-size: 13px; color: #0284c7; margin: 0; padding-left: 20px;">
+              <li><strong>username</strong> - รหัสพนักงาน (จำเป็น)</li>
+              <li><strong>password</strong> - รหัสผ่าน (จำเป็น)</li>
+              <li><strong>name</strong> - ชื่อ-นามสกุล (จำเป็น)</li>
+              <li><strong>role</strong> - สิทธิ์ (admin หรือ user)</li>
+              <li><strong>site</strong> - สาขา</li>
+              <li><strong>department</strong> - แผนก</li>
+            </ul>
+          </div>
+          <input type="file" id="excel-file" accept=".xlsx,.xls" 
+            style="width: 100%; padding: 10px; border: 2px dashed #d1d5db; border-radius: 8px; cursor: pointer;">
+          <p style="font-size: 12px; color: #9ca3af; margin-top: 10px;">
+            💡 หาก username ซ้ำจะอัปเดตข้อมูลเดิม
+          </p>
+        </div>
+      `,
+      width: '500px',
+      showCancelButton: true,
+      confirmButtonText: 'นำเข้า',
+      cancelButtonText: 'ยกเลิก',
+      showDenyButton: true,
+      denyButtonText: 'ดาวน์โหลด Template',
+      denyButtonColor: '#10b981',
+      preDeny: () => {
+        handleDownloadTemplate()
+        return false // Prevent closing
+      },
+      preConfirm: () => {
+        const fileInput = document.getElementById('excel-file') as HTMLInputElement
+        const file = fileInput?.files?.[0]
+        if (!file) {
+          Swal.showValidationMessage('กรุณาเลือกไฟล์ Excel')
+          return false
+        }
+        return file
+      }
+    })
+
+    if (file) {
+      try {
+        setImporting(true)
+        
+        // อ่านไฟล์ Excel
+        const data = await file.arrayBuffer()
+        const workbook = XLSX.read(data)
+        const sheetName = workbook.SheetNames[0]
+        const worksheet = workbook.Sheets[sheetName]
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as any[]
+
+        if (jsonData.length === 0) {
+          throw new Error('ไม่พบข้อมูลในไฟล์ Excel')
+        }
+
+        // แสดง preview ก่อน import
+        const previewHtml = `
+          <div style="max-height: 300px; overflow-y: auto; text-align: left;">
+            <p style="margin-bottom: 10px;">พบข้อมูล <strong>${jsonData.length}</strong> รายการ</p>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+              <thead>
+                <tr style="background: #f3f4f6;">
+                  <th style="padding: 8px; border: 1px solid #e5e7eb;">Username</th>
+                  <th style="padding: 8px; border: 1px solid #e5e7eb;">ชื่อ</th>
+                  <th style="padding: 8px; border: 1px solid #e5e7eb;">Role</th>
+                  <th style="padding: 8px; border: 1px solid #e5e7eb;">สาขา</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${jsonData.slice(0, 10).map((row, i) => `
+                  <tr style="${i % 2 ? 'background: #f9fafb;' : ''}">
+                    <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${row.username || '-'}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${row.name || '-'}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${row.role || 'user'}</td>
+                    <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${row.site || '-'}</td>
+                  </tr>
+                `).join('')}
+                ${jsonData.length > 10 ? `<tr><td colspan="4" style="padding: 8px; text-align: center; color: #6b7280;">... และอีก ${jsonData.length - 10} รายการ</td></tr>` : ''}
+              </tbody>
+            </table>
+          </div>
+        `
+
+        const confirmResult = await Swal.fire({
+          title: 'ยืนยันการนำเข้า',
+          html: previewHtml,
+          width: '600px',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonText: 'ยืนยัน นำเข้า',
+          cancelButtonText: 'ยกเลิก',
+          confirmButtonColor: '#6366f1'
+        })
+
+        if (!confirmResult.isConfirmed) {
+          setImporting(false)
+          return
+        }
+
+        // ส่งข้อมูลไป API
+        const response = await apiFetch('/api/users/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ users: jsonData })
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
+          let resultHtml = `<p style="font-size: 18px; margin-bottom: 10px;">✅ สำเร็จ ${result.data.success} รายการ</p>`
+          
+          if (result.data.failed > 0) {
+            resultHtml += `<p style="color: #dc2626; margin-bottom: 10px;">❌ ล้มเหลว ${result.data.failed} รายการ</p>`
+            resultHtml += `<div style="max-height: 150px; overflow-y: auto; text-align: left; background: #fef2f2; padding: 10px; border-radius: 6px; font-size: 12px;">`
+            result.data.errors.slice(0, 5).forEach((err: any) => {
+              resultHtml += `<p style="margin: 4px 0;">แถว ${err.row}: ${err.username} - ${err.error}</p>`
+            })
+            if (result.data.errors.length > 5) {
+              resultHtml += `<p style="color: #6b7280;">... และอีก ${result.data.errors.length - 5} รายการ</p>`
+            }
+            resultHtml += `</div>`
+          }
+
+          await Swal.fire({
+            icon: 'success',
+            title: 'นำเข้าข้อมูลเสร็จสิ้น',
+            html: resultHtml,
+            confirmButtonText: 'ปิด'
+          })
+          
+          fetchUsers()
+        } else {
+          throw new Error(result.error || 'เกิดข้อผิดพลาด')
+        }
+      } catch (error: any) {
+        console.error('Import error:', error)
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: error.message || 'ไม่สามารถนำเข้าข้อมูลได้'
+        })
+      } finally {
+        setImporting(false)
+      }
+    }
+  }
+
   if (!user || user.role !== 'admin') {
     return null
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">ระบบบำรุงรักษา</h1>
-              <p className="text-sm text-muted-foreground">จัดการผู้ใช้</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="font-medium text-sm">{user?.name || user?.username}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
-            </div>
-            <Button variant="outline" onClick={handleLogout}>
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       {/* Main Content */}
-      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -621,6 +907,19 @@ export default function UsersPage() {
                 </p>
               </div>
               <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="gap-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-200" 
+                  onClick={handleImportExcel}
+                  disabled={importing}
+                >
+                  {importing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  {importing ? 'กำลังนำเข้า...' : 'นำเข้าจาก Excel'}
+                </Button>
                 <Button className="gap-2" onClick={handleAddUser}>
                   <Plus className="h-4 w-4" />
                   เพิ่มผู้ใช้
@@ -629,123 +928,20 @@ export default function UsersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Search and Filters */}
-            <div className="mb-6 space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="ค้นหา User ID, Username, ชื่อ, สาขา, แผนก..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="flex gap-4">
-                <Select value={filterSite} onValueChange={setFilterSite}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="เลือกสาขา" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ทุกสาขา</SelectItem>
-                    {sites.map((site) => (
-                      <SelectItem key={site.site_code} value={site.site_code}>
-                        {site.site_code} - {site.site}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={filterDepartment} onValueChange={setFilterDepartment}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="เลือกแผนก" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ทุกแผนก</SelectItem>
-                    {Array.from(new Set(users.map(u => u.department).filter(Boolean))).map((dept) => (
-                      <SelectItem key={dept} value={dept!}>{dept}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Table */}
+            {/* DataTable */}
             {loading ? (
               <div className="flex justify-center items-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : users.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                ไม่พบข้อมูลผู้ใช้
-              </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Username</TableHead>
-                      <TableHead>ชื่อ-นามสกุล</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>สาขา</TableHead>
-                      <TableHead>แผนก</TableHead>
-                      <TableHead className="text-center">ทรัพย์สิน</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users
-                      .filter(u => {
-                        if (filterSite !== 'all' && u.site !== filterSite) return false
-                        if (filterDepartment !== 'all' && u.department !== filterDepartment) return false
-                        return true
-                      })
-                      .map((u) => (
-                      <TableRow key={u.iduser}>
-                        <TableCell className="font-medium">{u.user_login}</TableCell>
-                        <TableCell>{u.name}</TableCell>
-                        <TableCell>
-                          <Badge variant={u.Role === 0 ? 'default' : 'secondary'}>
-                            {u.Role === 0 ? 'Admin' : 'User'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{u.site || '-'}</TableCell>
-                        <TableCell>{u.department || '-'}</TableCell>
-                        <TableCell className="text-center">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleViewAssets(u)}
-                            title="ดูทรัพย์สิน"
-                            className="gap-2"
-                          >
-                            <Monitor className="h-4 w-4" />
-                            ดูทรัพย์สิน
-                          </Button>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleEdit(u)}
-                              title="แก้ไข"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              onClick={() => handleDelete(u)}
-                              title="ลบ"
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <UsersDataTable
+                data={users}
+                sites={sites}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onViewAssets={handleViewAssets}
+                onManageSites={handleManageSites}
+              />
             )}
           </CardContent>
         </Card>

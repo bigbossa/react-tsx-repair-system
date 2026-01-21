@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/auth-context";
+import { apiFetch } from '@/lib/api';
+import { AppHeader } from "@/components/app-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowLeft,
   Wrench,
   Building2,
   Package,
@@ -16,6 +17,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 import {
   Table,
@@ -106,25 +108,29 @@ export default function ReportPage() {
     totalCost: 0,
   });
 
-  const [companyStats, setCompanyStats] = useState<{ [key: string]: number }>({});
-  const [companies, setCompanies] = useState<Array<{ id: number; company_code: string; company_name: string }>>([]);
+  const [companyStats, setCompanyStats] = useState<{ [key: string]: number }>(
+    {}
+  );
+  const [companies, setCompanies] = useState<
+    Array<{ id: number; company_code: string; company_name: string }>
+  >([]);
   const [categoryStats, setCategoryStats] = useState<{ [key: string]: number }>(
     {}
   );
   const [workStats, setWorkStats] = useState<{ [key: string]: number }>({});
   const [userStats, setUserStats] = useState<{ [key: string]: number }>({});
   const [assetStats, setAssetStats] = useState<{ [key: string]: number }>({});
-  const [technicianRatings, setTechnicianRatings] = useState<{ 
-    [key: string]: { 
-      total: number; 
-      ratings: number[]; 
+  const [technicianRatings, setTechnicianRatings] = useState<{
+    [key: string]: {
+      total: number;
+      ratings: number[];
       avgRating: number;
       excellent: number;
       good: number;
       fair: number;
       poor: number;
       bad: number;
-    } 
+    };
   }>({});
 
   // State สำหรับ Dialog
@@ -148,9 +154,12 @@ export default function ReportPage() {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categoryAssets, setCategoryAssets] = useState<Asset[]>([]);
-  const [costDialogDateFilter, setCostDialogDateFilter] = useState<string>("all");
-  const [costDialogCustomStartDate, setCostDialogCustomStartDate] = useState<string>("");
-  const [costDialogCustomEndDate, setCostDialogCustomEndDate] = useState<string>("");
+  const [costDialogDateFilter, setCostDialogDateFilter] =
+    useState<string>("all");
+  const [costDialogCustomStartDate, setCostDialogCustomStartDate] =
+    useState<string>("");
+  const [costDialogCustomEndDate, setCostDialogCustomEndDate] =
+    useState<string>("");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
   const [ratingFilter, setRatingFilter] = useState<string>("all");
@@ -171,11 +180,12 @@ export default function ReportPage() {
 
   const handleTicketClick = async (feedbackOrRequestId: Feedback | string) => {
     try {
-      const requestId = typeof feedbackOrRequestId === 'string' 
-        ? feedbackOrRequestId 
-        : feedbackOrRequestId.form_name;
-      
-      const response = await fetch(`/api/tickets/${requestId}`);
+      const requestId =
+        typeof feedbackOrRequestId === "string"
+          ? feedbackOrRequestId
+          : feedbackOrRequestId.form_name;
+
+      const response = await apiFetch(`/api/tickets/${requestId}`);
       if (response.ok) {
         const ticketData = await response.json();
         setSelectedTicket(ticketData);
@@ -191,8 +201,10 @@ export default function ReportPage() {
     setIsDialogOpen(true);
 
     // ดึงข้อมูลทรัพย์สินของบริษัทนั้นๆ
-    const companyAssets = assets.filter((asset) => asset.company === companyName);
-    
+    const companyAssets = assets.filter(
+      (asset) => asset.company === companyName
+    );
+
     // แยกตามสาขา
     const siteCount: { [key: string]: number } = {};
     companyAssets.forEach((asset: Asset) => {
@@ -201,7 +213,7 @@ export default function ReportPage() {
       }
     });
     setCompanySiteStats(siteCount);
-    
+
     // แยกตามประเภท
     const categoryCount: { [key: string]: number } = {};
     companyAssets.forEach((asset: Asset) => {
@@ -221,7 +233,7 @@ export default function ReportPage() {
     const siteAssets = assets.filter(
       (asset) => asset.site === siteName && asset.company === companyName
     );
-    
+
     // แยกตามประเภท
     const categoryCount: { [key: string]: number } = {};
     siteAssets.forEach((asset: Asset) => {
@@ -235,7 +247,7 @@ export default function ReportPage() {
 
   // Helper function to get company name from company code
   const getCompanyName = (code: string) => {
-    const company = companies.find(c => c.company_code === code);
+    const company = companies.find((c) => c.company_code === code);
     return company ? company.company_name : code;
   };
 
@@ -276,7 +288,12 @@ export default function ReportPage() {
 
   const fetchAllData = async () => {
     try {
-      await Promise.all([fetchFeedbacks(), fetchTickets(), fetchAssets(), fetchCompanies()]);
+      await Promise.all([
+        fetchFeedbacks(),
+        fetchTickets(),
+        fetchAssets(),
+        fetchCompanies(),
+      ]);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
@@ -324,7 +341,8 @@ export default function ReportPage() {
 
   const fetchFeedbacks = async () => {
     try {
-      const response = await fetch("/api/feedback");
+      // ดึง feedback พร้อมข้อมูลผู้ซ่อม (finish_with) จาก join กับ repairrequest
+      const response = await apiFetch("/api/feedback?with_technician=true");
       if (response.ok) {
         const allData = await response.json();
         setFeedbacks(allData);
@@ -355,76 +373,71 @@ export default function ReportPage() {
           avgRating: Number(avgRating),
         });
 
-        // วิเคราะห์การประเมินตามผู้รับซ่อม
-        await analyzeTechnicianRatings(allData);
+        // วิเคราะห์การประเมินตามผู้รับซ่อม - ใช้ข้อมูล finish_with จาก feedback ที่ join มาแล้ว
+        analyzeTechnicianRatings(allData);
       }
     } catch (error) {
       console.error("Failed to fetch feedbacks:", error);
     }
   };
 
-  const analyzeTechnicianRatings = async (feedbackData: Feedback[]) => {
+  const analyzeTechnicianRatings = (feedbackData: any[]) => {
     try {
-      // ดึงข้อมูล tickets เพื่อดูว่าใครเป็นคนซ่อม
-      const response = await fetch("/api/tickets");
-      if (response.ok) {
-        const ticketsData = await response.json();
-        
-        const techStats: { 
-          [key: string]: { 
-            total: number; 
-            ratings: number[]; 
-            avgRating: number;
-            excellent: number;
-            good: number;
-            fair: number;
-            poor: number;
-            bad: number;
-          } 
-        } = {};
+      const techStats: {
+        [key: string]: {
+          total: number;
+          ratings: number[];
+          avgRating: number;
+          excellent: number;
+          good: number;
+          fair: number;
+          poor: number;
+          bad: number;
+        };
+      } = {};
 
-        // จับคู่ feedback กับ ticket เพื่อหาผู้รับซ่อม
-        feedbackData.forEach((feedback) => {
-          const ticket = ticketsData.find((t: Ticket) => t.request_id === feedback.form_name);
-          if (ticket && ticket.finish_with) {
-            const technician = ticket.finish_with;
-            const rating = parseInt(feedback.form_status);
+      // ใช้ข้อมูล finish_with ที่ join มาพร้อมกับ feedback แล้ว
+      feedbackData.forEach((feedback) => {
+        if (feedback.finish_with) {
+          const technician = feedback.finish_with;
+          const rating = parseInt(feedback.form_status);
 
-            if (!techStats[technician]) {
-              techStats[technician] = {
-                total: 0,
-                ratings: [],
-                avgRating: 0,
-                excellent: 0,
-                good: 0,
-                fair: 0,
-                poor: 0,
-                bad: 0,
-              };
-            }
-
-            techStats[technician].total++;
-            techStats[technician].ratings.push(rating);
-
-            if (rating === 5) techStats[technician].excellent++;
-            else if (rating === 4) techStats[technician].good++;
-            else if (rating === 3) techStats[technician].fair++;
-            else if (rating === 2) techStats[technician].poor++;
-            else if (rating === 1) techStats[technician].bad++;
+          if (!techStats[technician]) {
+            techStats[technician] = {
+              total: 0,
+              ratings: [],
+              avgRating: 0,
+              excellent: 0,
+              good: 0,
+              fair: 0,
+              poor: 0,
+              bad: 0,
+            };
           }
-        });
 
-        // คำนวณคะแนนเฉลี่ย
-        Object.keys(techStats).forEach((tech) => {
-          const ratings = techStats[tech].ratings;
-          if (ratings.length > 0) {
-            const sum = ratings.reduce((a, b) => a + b, 0);
-            techStats[tech].avgRating = Number((sum / ratings.length).toFixed(2));
-          }
-        });
+          techStats[technician].total++;
+          techStats[technician].ratings.push(rating);
 
-        setTechnicianRatings(techStats);
-      }
+          if (rating === 5) techStats[technician].excellent++;
+          else if (rating === 4) techStats[technician].good++;
+          else if (rating === 3) techStats[technician].fair++;
+          else if (rating === 2) techStats[technician].poor++;
+          else if (rating === 1) techStats[technician].bad++;
+        }
+      });
+
+      // คำนวณคะแนนเฉลี่ย
+      Object.keys(techStats).forEach((tech) => {
+        const ratings = techStats[tech].ratings;
+        if (ratings.length > 0) {
+          const sum = ratings.reduce((a, b) => a + b, 0);
+          techStats[tech].avgRating = Number(
+            (sum / ratings.length).toFixed(2)
+          );
+        }
+      });
+
+      setTechnicianRatings(techStats);
     } catch (error) {
       console.error("Failed to analyze technician ratings:", error);
     }
@@ -495,7 +508,8 @@ export default function ReportPage() {
           const yearStart = new Date(now.getFullYear(), 0, 1);
           return ticketDate >= yearStart;
         case "custom":
-          if (!costDialogCustomStartDate || !costDialogCustomEndDate) return true;
+          if (!costDialogCustomStartDate || !costDialogCustomEndDate)
+            return true;
           const start = new Date(costDialogCustomStartDate);
           const end = new Date(costDialogCustomEndDate);
           end.setHours(23, 59, 59, 999);
@@ -508,7 +522,7 @@ export default function ReportPage() {
 
   const fetchTickets = async () => {
     try {
-      const response = await fetch("/api/tickets");
+      const response = await apiFetch("/api/tickets");
       if (response.ok) {
         const allData = await response.json();
         setTickets(allData);
@@ -585,19 +599,20 @@ export default function ReportPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('/api/company');
+      const response = await apiFetch("/api/company");
       if (response.ok) {
         const data = await response.json();
         setCompanies(data);
       }
     } catch (error) {
-      console.error('Error fetching companies:', error);
+      console.error("Error fetching companies:", error);
     }
   };
 
   const fetchAssets = async () => {
     try {
-      const response = await fetch("/api/assets");
+      // ดึงข้อมูลทั้งหมดโดยใช้ pageSize ที่มากพอ
+      const response = await apiFetch("/api/assets?pageSize=10000");
       if (response.ok) {
         const result = await response.json();
         console.log("Assets API response:", result);
@@ -611,7 +626,8 @@ export default function ReportPage() {
         const companyCount: { [key: string]: number } = {};
         data.forEach((asset: Asset) => {
           if (asset.company) {
-            companyCount[asset.company] = (companyCount[asset.company] || 0) + 1;
+            companyCount[asset.company] =
+              (companyCount[asset.company] || 0) + 1;
           }
         });
         setCompanyStats(companyCount);
@@ -761,53 +777,9 @@ export default function ReportPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push("/dashboard")}
-                className="shrink-0"
-              >
-                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-xl md:text-2xl font-bold truncate">
-                  ระบบบำรุงรักษา
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                  รายงานการประเมิน
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-              <div className="text-right hidden md:block">
-                <p className="font-medium text-sm">
-                  {user?.username}
-                </p>
-                <p className="text-xs">
-                  {user?.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {user?.department} | {user?.site}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="text-xs sm:text-sm px-2 sm:px-4"
-              >
-                <span className="hidden sm:inline">Logout</span>
-                <span className="sm:hidden">ออก</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
-      <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <main className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
@@ -904,7 +876,9 @@ export default function ReportPage() {
                   <div className="text-2xl sm:text-3xl md:text-4xl text-right">
                     {ticketStats.total}
                   </div>
-                  <p className="text-xs text-muted-foreground absolute bottom-3 right-3">รายการ</p>
+                  <p className="text-xs text-muted-foreground absolute bottom-3 right-3">
+                    รายการ
+                  </p>
                 </CardContent>
               </Card>
               <Card className="overflow-hidden">
@@ -1436,6 +1410,7 @@ export default function ReportPage() {
                         <TableHead>ผู้แจ้ง</TableHead>
                         <TableHead>รายการ</TableHead>
                         <TableHead>ประเภท</TableHead>
+                        <TableHead>คนรับงาน</TableHead>
                         <TableHead>สถานะ</TableHead>
                         <TableHead className="text-right">วันที่แจ้ง</TableHead>
                       </TableRow>
@@ -1444,7 +1419,7 @@ export default function ReportPage() {
                       {currentTickets.length === 0 ? (
                         <TableRow>
                           <TableCell
-                            colSpan={7}
+                            colSpan={8}
                             className="text-center text-muted-foreground py-8"
                           >
                             {searchQuery || statusFilter !== "all"
@@ -1471,6 +1446,17 @@ export default function ReportPage() {
                                   ? "เบิกอุปกรณ์"
                                   : "แจ้งซ่อม"}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {ticket.finish_with ? (
+                                <span className="text-sm font-medium text-purple-700">
+                                  {ticket.finish_with}
+                                </span>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">
+                                  -
+                                </span>
+                              )}
                             </TableCell>
                             <TableCell>
                               {getStatusBadge(ticket.Status)}
@@ -1582,7 +1568,10 @@ export default function ReportPage() {
                       <CardHeader className="pb-2 px-4 sm:px-6 sm:pb-3">
                         <div className="flex items-center justify-between">
                           <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500" />
-                          <Badge variant="secondary" className="text-sm sm:text-base">
+                          <Badge
+                            variant="secondary"
+                            className="text-sm sm:text-base"
+                          >
                             {percentage.toFixed(1)}%
                           </Badge>
                         </div>
@@ -1751,7 +1740,9 @@ export default function ReportPage() {
                   <div className="text-2xl sm:text-3xl md:text-4xl text-right">
                     {feedbackStats.total}
                   </div>
-                  <p className="text-xs text-muted-foreground absolute bottom-3 right-3">รายการ</p>
+                  <p className="text-xs text-muted-foreground absolute bottom-3 right-3">
+                    รายการ
+                  </p>
                 </CardContent>
               </Card>
 
@@ -1886,19 +1877,148 @@ export default function ReportPage() {
 
             {/* การประเมินตามผู้รับซ่อม */}
             {Object.keys(technicianRatings).length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>การประเมินตามผู้รับซ่อม</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    ดูประสิทธิภาพการทำงานของแต่ละช่าง
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {Object.entries(technicianRatings)
-                      .sort((a, b) => b[1].avgRating - a[1].avgRating)
+              <>
+                {/* สรุปภาพรวมแบบตาราง */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl">สรุปการประเมินรายบุคคล</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      แสดงรายละเอียดการประเมินความพึงพอใจของแต่ละช่างซ่อม
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="font-semibold">ลำดับ</TableHead>
+                            <TableHead className="font-semibold">ชื่อ-นามสกุล</TableHead>
+                            <TableHead className="text-center font-semibold">จำนวนการประเมิน</TableHead>
+                            <TableHead className="text-center font-semibold">คะแนนเฉลี่ย</TableHead>
+                            <TableHead className="text-center font-semibold">★★★★★</TableHead>
+                            <TableHead className="text-center font-semibold">★★★★☆</TableHead>
+                            <TableHead className="text-center font-semibold">★★★☆☆</TableHead>
+                            <TableHead className="text-center font-semibold">★★☆☆☆</TableHead>
+                            <TableHead className="text-center font-semibold">★☆☆☆☆</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Object.entries(technicianRatings)
+                            .sort((a, b) => b[1].avgRating - a[1].avgRating)
+                            .map(([technician, stats], index) => (
+                              <TableRow key={technician} className="hover:bg-muted/30">
+                                <TableCell className="font-medium">{index + 1}</TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                      <span className="text-blue-700 font-bold text-sm">
+                                        {technician.charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <span className="font-medium">{technician}</span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Badge variant="outline" className="font-semibold">
+                                    {stats.total} ครั้ง
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className="text-2xl font-bold text-blue-600">
+                                      {stats.avgRating}
+                                    </span>
+                                    <div className="flex gap-0.5">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                        <span
+                                          key={star}
+                                          className={`text-xs ${
+                                            stats.avgRating >= star
+                                              ? "text-yellow-400"
+                                              : "text-gray-300"
+                                          }`}
+                                        >
+                                          ★
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className="text-lg font-bold text-green-600">
+                                      {stats.excellent}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      ({stats.total > 0 ? ((stats.excellent / stats.total) * 100).toFixed(0) : 0}%)
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className="text-lg font-bold text-blue-600">
+                                      {stats.good}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      ({stats.total > 0 ? ((stats.good / stats.total) * 100).toFixed(0) : 0}%)
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className="text-lg font-bold text-yellow-600">
+                                      {stats.fair}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      ({stats.total > 0 ? ((stats.fair / stats.total) * 100).toFixed(0) : 0}%)
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className="text-lg font-bold text-orange-600">
+                                      {stats.poor}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      ({stats.total > 0 ? ((stats.poor / stats.total) * 100).toFixed(0) : 0}%)
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className="text-lg font-bold text-red-600">
+                                      {stats.bad}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      ({stats.total > 0 ? ((stats.bad / stats.total) * 100).toFixed(0) : 0}%)
+                                    </span>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* รายละเอียดแต่ละคน */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>รายละเอียดการประเมินแต่ละบุคคล</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      ดูประสิทธิภาพการทำงานของแต่ละช่างแบบละเอียด
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {Object.entries(technicianRatings)
+                        .sort((a, b) => b[1].avgRating - a[1].avgRating)
                       .map(([technician, stats]) => (
-                        <div key={technician} className="space-y-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div
+                          key={technician}
+                          className="space-y-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                        >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -1907,7 +2027,9 @@ export default function ReportPage() {
                                 </span>
                               </div>
                               <div>
-                                <h3 className="font-semibold text-lg">{technician}</h3>
+                                <h3 className="font-semibold text-lg">
+                                  {technician}
+                                </h3>
                                 <p className="text-sm text-muted-foreground">
                                   ประเมิน {stats.total} ครั้ง
                                 </p>
@@ -1950,7 +2072,13 @@ export default function ReportPage() {
                                 ★★★★★
                               </div>
                               <div className="text-xs text-green-600 font-medium">
-                                {stats.total > 0 ? ((stats.excellent / stats.total) * 100).toFixed(0) : 0}%
+                                {stats.total > 0
+                                  ? (
+                                      (stats.excellent / stats.total) *
+                                      100
+                                    ).toFixed(0)
+                                  : 0}
+                                %
                               </div>
                             </div>
                             <div className="space-y-1">
@@ -1961,7 +2089,12 @@ export default function ReportPage() {
                                 ★★★★☆
                               </div>
                               <div className="text-xs text-blue-600 font-medium">
-                                {stats.total > 0 ? ((stats.good / stats.total) * 100).toFixed(0) : 0}%
+                                {stats.total > 0
+                                  ? ((stats.good / stats.total) * 100).toFixed(
+                                      0
+                                    )
+                                  : 0}
+                                %
                               </div>
                             </div>
                             <div className="space-y-1">
@@ -1972,7 +2105,12 @@ export default function ReportPage() {
                                 ★★★☆☆
                               </div>
                               <div className="text-xs text-yellow-600 font-medium">
-                                {stats.total > 0 ? ((stats.fair / stats.total) * 100).toFixed(0) : 0}%
+                                {stats.total > 0
+                                  ? ((stats.fair / stats.total) * 100).toFixed(
+                                      0
+                                    )
+                                  : 0}
+                                %
                               </div>
                             </div>
                             <div className="space-y-1">
@@ -1983,7 +2121,12 @@ export default function ReportPage() {
                                 ★★☆☆☆
                               </div>
                               <div className="text-xs text-orange-600 font-medium">
-                                {stats.total > 0 ? ((stats.poor / stats.total) * 100).toFixed(0) : 0}%
+                                {stats.total > 0
+                                  ? ((stats.poor / stats.total) * 100).toFixed(
+                                      0
+                                    )
+                                  : 0}
+                                %
                               </div>
                             </div>
                             <div className="space-y-1">
@@ -1994,7 +2137,10 @@ export default function ReportPage() {
                                 ★☆☆☆☆
                               </div>
                               <div className="text-xs text-red-600 font-medium">
-                                {stats.total > 0 ? ((stats.bad / stats.total) * 100).toFixed(0) : 0}%
+                                {stats.total > 0
+                                  ? ((stats.bad / stats.total) * 100).toFixed(0)
+                                  : 0}
+                                %
                               </div>
                             </div>
                           </div>
@@ -2004,35 +2150,47 @@ export default function ReportPage() {
                             {stats.excellent > 0 && (
                               <div
                                 className="bg-green-500"
-                                style={{ width: `${(stats.excellent / stats.total) * 100}%` }}
+                                style={{
+                                  width: `${
+                                    (stats.excellent / stats.total) * 100
+                                  }%`,
+                                }}
                                 title={`5 ดาว: ${stats.excellent}`}
                               />
                             )}
                             {stats.good > 0 && (
                               <div
                                 className="bg-blue-500"
-                                style={{ width: `${(stats.good / stats.total) * 100}%` }}
+                                style={{
+                                  width: `${(stats.good / stats.total) * 100}%`,
+                                }}
                                 title={`4 ดาว: ${stats.good}`}
                               />
                             )}
                             {stats.fair > 0 && (
                               <div
                                 className="bg-yellow-500"
-                                style={{ width: `${(stats.fair / stats.total) * 100}%` }}
+                                style={{
+                                  width: `${(stats.fair / stats.total) * 100}%`,
+                                }}
                                 title={`3 ดาว: ${stats.fair}`}
                               />
                             )}
                             {stats.poor > 0 && (
                               <div
                                 className="bg-orange-500"
-                                style={{ width: `${(stats.poor / stats.total) * 100}%` }}
+                                style={{
+                                  width: `${(stats.poor / stats.total) * 100}%`,
+                                }}
                                 title={`2 ดาว: ${stats.poor}`}
                               />
                             )}
                             {stats.bad > 0 && (
                               <div
                                 className="bg-red-500"
-                                style={{ width: `${(stats.bad / stats.total) * 100}%` }}
+                                style={{
+                                  width: `${(stats.bad / stats.total) * 100}%`,
+                                }}
                                 title={`1 ดาว: ${stats.bad}`}
                               />
                             )}
@@ -2042,6 +2200,7 @@ export default function ReportPage() {
                   </div>
                 </CardContent>
               </Card>
+              </>
             )}
 
             <Card>
@@ -2064,7 +2223,7 @@ export default function ReportPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <FeedbackDataTable 
+                <FeedbackDataTable
                   data={feedbacks}
                   onRowClick={handleTicketClick}
                   ratingFilter={ratingFilter}
@@ -2073,41 +2232,62 @@ export default function ReportPage() {
             </Card>
 
             {/* Ticket Detail Dialog */}
-            <Dialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen}>
+            <Dialog
+              open={isTicketDialogOpen}
+              onOpenChange={setIsTicketDialogOpen}
+            >
               <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>รายละเอียดการแจ้งซ่อม - {selectedTicket?.request_id}</DialogTitle>
+                  <DialogTitle>
+                    รายละเอียดการแจ้งซ่อม - {selectedTicket?.request_id}
+                  </DialogTitle>
                 </DialogHeader>
                 {selectedTicket && (
                   <div className="space-y-4 py-4">
                     <div className="space-y-3">
                       <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                        <p className="text-sm font-semibold text-muted-foreground mb-1">ผู้รับงาน</p>
+                        <p className="text-sm font-semibold text-muted-foreground mb-1">
+                          ผู้รับงาน
+                        </p>
                         <p className="text-lg font-bold text-purple-700">
-                          {selectedTicket.finish_with || '-'}
+                          {selectedTicket.finish_with || "-"}
                         </p>
                       </div>
 
                       <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                        <p className="text-sm font-semibold text-muted-foreground mb-1">ระยะเวลาการซ่อม</p>
+                        <p className="text-sm font-semibold text-muted-foreground mb-1">
+                          ระยะเวลาการซ่อม
+                        </p>
                         <p className="text-lg font-bold text-orange-700">
                           {(() => {
-                            const startDate = selectedTicket.start_repair && selectedTicket.start_repair.trim() !== '' 
-                              ? new Date(selectedTicket.start_repair)
-                              : selectedTicket.created_at ? new Date(selectedTicket.created_at) : null
-                            
-                            if (!startDate) return '-'
-                            
-                            const endDate = selectedTicket.finish_repair && selectedTicket.finish_repair.trim() !== '' 
-                              ? new Date(selectedTicket.finish_repair) 
-                              : (selectedTicket.Status === 2 ? null : new Date())
-                            
-                            if (!endDate) return '-'
-                            
-                            const diffTime = Math.abs(endDate.getTime() - startDate.getTime())
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                            
-                            return `${diffDays} วัน`
+                            const startDate =
+                              selectedTicket.start_repair &&
+                              selectedTicket.start_repair.trim() !== ""
+                                ? new Date(selectedTicket.start_repair)
+                                : selectedTicket.created_at
+                                ? new Date(selectedTicket.created_at)
+                                : null;
+
+                            if (!startDate) return "-";
+
+                            const endDate =
+                              selectedTicket.finish_repair &&
+                              selectedTicket.finish_repair.trim() !== ""
+                                ? new Date(selectedTicket.finish_repair)
+                                : selectedTicket.Status === 2
+                                ? null
+                                : new Date();
+
+                            if (!endDate) return "-";
+
+                            const diffTime = Math.abs(
+                              endDate.getTime() - startDate.getTime()
+                            );
+                            const diffDays = Math.ceil(
+                              diffTime / (1000 * 60 * 60 * 24)
+                            );
+
+                            return `${diffDays} วัน`;
                           })()}
                         </p>
                       </div>
@@ -2125,7 +2305,7 @@ export default function ReportPage() {
             </Dialog>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
 
       {/* Dialog รายการงานทั้งหมด */}
       <Dialog open={isWorkDialogOpen} onOpenChange={setIsWorkDialogOpen}>
@@ -2319,7 +2499,10 @@ export default function ReportPage() {
           <div className="py-4 space-y-4">
             {/* Date Filter */}
             <div className="flex gap-2 items-center flex-wrap">
-              <Select value={costDialogDateFilter} onValueChange={setCostDialogDateFilter}>
+              <Select
+                value={costDialogDateFilter}
+                onValueChange={setCostDialogDateFilter}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="เลือกช่วงเวลา" />
                 </SelectTrigger>
@@ -2338,7 +2521,9 @@ export default function ReportPage() {
                   <Input
                     type="date"
                     value={costDialogCustomStartDate}
-                    onChange={(e) => setCostDialogCustomStartDate(e.target.value)}
+                    onChange={(e) =>
+                      setCostDialogCustomStartDate(e.target.value)
+                    }
                     className="w-[180px]"
                     placeholder="วันที่เริ่มต้น"
                   />
@@ -2360,12 +2545,16 @@ export default function ReportPage() {
                   ค่าใช้จ่ายรวมทั้งหมด
                 </p>
                 <p className="text-2xl font-bold text-amber-600">
-                  ฿{(() => {
-                    const filteredTickets = filterTicketsByDateForDialog(tickets);
+                  ฿
+                  {(() => {
+                    const filteredTickets =
+                      filterTicketsByDateForDialog(tickets);
                     const total = filteredTickets
                       .filter((t: Ticket) => t.cost && t.cost.trim() !== "")
                       .reduce((sum, ticket) => {
-                        const cost = parseFloat(ticket.cost?.replace(/[,฿]/g, "") || "0");
+                        const cost = parseFloat(
+                          ticket.cost?.replace(/[,฿]/g, "") || "0"
+                        );
                         return sum + cost;
                       }, 0);
                     return total.toLocaleString("th-TH", {
@@ -2375,9 +2564,11 @@ export default function ReportPage() {
                   })()}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {filterTicketsByDateForDialog(tickets).filter(
-                    (t: Ticket) => t.cost && t.cost.trim() !== ""
-                  ).length}{" "}
+                  {
+                    filterTicketsByDateForDialog(tickets).filter(
+                      (t: Ticket) => t.cost && t.cost.trim() !== ""
+                    ).length
+                  }{" "}
                   รายการ
                 </p>
               </div>
@@ -2417,7 +2608,7 @@ export default function ReportPage() {
                   );
                 })()}
               </div> */}
-{/* 
+              {/* 
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                 <p className="text-sm text-muted-foreground mb-1">
                   สรุปรายปี (ตามช่วงวันที่ที่เลือก)
@@ -2603,7 +2794,10 @@ export default function ReportPage() {
       </Dialog>
 
       {/* Dialog แสดงรายละเอียดทรัพย์สินตามประเภท */}
-      <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+      <Dialog
+        open={isCategoryDialogOpen}
+        onOpenChange={setIsCategoryDialogOpen}
+      >
         <DialogContent className="!max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -2634,7 +2828,10 @@ export default function ReportPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-blue-600">
-                    {new Set(categoryAssets.map(a => a.site).filter(Boolean)).size}
+                    {
+                      new Set(categoryAssets.map((a) => a.site).filter(Boolean))
+                        .size
+                    }
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">สาขา</p>
                 </CardContent>
@@ -2661,18 +2858,33 @@ export default function ReportPage() {
                     <TableBody>
                       {categoryAssets.length > 0 ? (
                         categoryAssets.map((asset, index) => (
-                          <TableRow key={asset.asset_code || index}>
-                            <TableCell className="font-medium">{index + 1}</TableCell>
-                            <TableCell className="font-mono text-sm">{asset.asset_code || '-'}</TableCell>
-                            <TableCell className="text-sm">{asset.device_name || '-'}</TableCell>
-                            <TableCell className="text-sm">{asset.site || '-'}</TableCell>
-                            <TableCell className="text-sm">{asset.department || '-'}</TableCell>
-                            <TableCell className="text-sm">{asset.user_name || '-'}</TableCell>
+                          <TableRow key={`${asset.asset_code}-${index}`}>
+                            <TableCell className="font-medium">
+                              {index + 1}
+                            </TableCell>
+                            <TableCell className="font-mono text-sm">
+                              {asset.asset_code || "-"}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {asset.device_name || "-"}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {asset.site || "-"}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {asset.department || "-"}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {asset.user_name || "-"}
+                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          <TableCell
+                            colSpan={6}
+                            className="text-center text-muted-foreground py-8"
+                          >
                             ไม่มีข้อมูลทรัพย์สิน
                           </TableCell>
                         </TableRow>
@@ -2692,7 +2904,8 @@ export default function ReportPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-blue-500" />
-              รายละเอียดทรัพย์สิน - {selectedCompany ? getCompanyName(selectedCompany) : ''}
+              รายละเอียดทรัพย์สิน -{" "}
+              {selectedCompany ? getCompanyName(selectedCompany) : ""}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
@@ -2713,7 +2926,7 @@ export default function ReportPage() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    จำนวนสาขา
+                    จำนวนสาขา <span className="inline-block w-20">&nbsp;</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -2753,10 +2966,12 @@ export default function ReportPage() {
                       );
                       const percentage = total > 0 ? (count / total) * 100 : 0;
                       return (
-                        <div 
-                          key={site} 
+                        <div
+                          key={site}
                           className="space-y-2 cursor-pointer hover:bg-accent p-3 rounded-lg transition-colors"
-                          onClick={() => handleSiteClick(site, selectedCompany || '')}
+                          onClick={() =>
+                            handleSiteClick(site, selectedCompany || "")
+                          }
                         >
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
@@ -2847,7 +3062,9 @@ export default function ReportPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-green-500" />
-              รายละเอียดทรัพย์สิน - {selectedCompany ? getCompanyName(selectedCompany) : ''} / {selectedSite}
+              รายละเอียดทรัพย์สิน -{" "}
+              {selectedCompany ? getCompanyName(selectedCompany) : ""} /{" "}
+              {selectedSite}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">

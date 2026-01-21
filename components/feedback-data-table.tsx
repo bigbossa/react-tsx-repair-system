@@ -33,6 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { formatDateTimeThai } from '@/lib/utils'
 
 interface Feedback {
   form_id: number
@@ -161,13 +162,7 @@ export const columns: ColumnDef<Feedback>[] = [
       const date = row.getValue('created_at') as string
       return (
         <div className="text-sm">
-          {new Date(date).toLocaleDateString('th-TH', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
+          {formatDateTimeThai(date)}
         </div>
       )
     },

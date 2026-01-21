@@ -181,6 +181,7 @@ async function GET(request) {
         asset_code, 
         user_id, 
         user_name, 
+        company,
         site, 
         department, 
         device_name,

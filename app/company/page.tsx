@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/auth-context";
+import { apiFetch } from '@/lib/api';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,7 @@ export default function CompanyPage() {
   const fetchCompanies = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/company");
+      const response = await apiFetch("/api/company");
       if (response.ok) {
         const data = await response.json();
         setCompanies(data);
@@ -111,7 +112,7 @@ export default function CompanyPage() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`/api/company?id=${company.id}`, {
+        const response = await apiFetch(`/api/company?id=${company.id}`, {
           method: "DELETE",
         });
 

@@ -193,6 +193,18 @@ const statusText = {
 function TicketCard({ ticket, onClick }) {
     const status = ticket.Status ?? 0;
     const formType = ticket.form_type || 'repair';
+    // Parse detail_work if available
+    const getWorkDetails = ()=>{
+        if (ticket.detail_work) {
+            try {
+                const details = JSON.parse(ticket.detail_work);
+                return `บริษัท: ${details.company || '-'}, สาขา: ${details.branch || '-'}, อุปกรณ์: ${details.device || ticket.asset_id || '-'}`;
+            } catch  {
+                return ticket.detail_work;
+            }
+        }
+        return null;
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
         className: "hover:shadow-md transition-shadow",
         children: [
@@ -212,7 +224,7 @@ function TicketCard({ ticket, onClick }) {
                                             children: ticket.request_id
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-card.tsx",
-                                            lineNumber: 38,
+                                            lineNumber: 51,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Badge"], {
@@ -221,30 +233,39 @@ function TicketCard({ ticket, onClick }) {
                                             children: formType === 'request' ? 'เบิกอุปกรณ์' : 'แจ้งซ่อม'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-card.tsx",
-                                            lineNumber: 39,
+                                            lineNumber: 52,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-card.tsx",
-                                    lineNumber: 37,
+                                    lineNumber: 50,
                                     columnNumber: 13
                                 }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                    className: "text-sm text-muted-foreground mt-1",
+                                ticket.work && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    className: "text-sm text-indigo-700 font-medium mt-1",
                                     children: [
-                                        "รหัสทรัพย์สิน: ",
-                                        ticket.asset_id || '-'
+                                        "[",
+                                        ticket.work,
+                                        "]"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-card.tsx",
-                                    lineNumber: 43,
-                                    columnNumber: 13
+                                    lineNumber: 57,
+                                    columnNumber: 15
+                                }, this),
+                                getWorkDetails() && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    className: "text-xs text-muted-foreground mt-1",
+                                    children: getWorkDetails()
+                                }, void 0, false, {
+                                    fileName: "[project]/components/ticket-card.tsx",
+                                    lineNumber: 60,
+                                    columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ticket-card.tsx",
-                            lineNumber: 36,
+                            lineNumber: 49,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Badge"], {
@@ -252,18 +273,18 @@ function TicketCard({ ticket, onClick }) {
                             children: statusText[status]
                         }, void 0, false, {
                             fileName: "[project]/components/ticket-card.tsx",
-                            lineNumber: 45,
+                            lineNumber: 63,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ticket-card.tsx",
-                    lineNumber: 35,
+                    lineNumber: 48,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ticket-card.tsx",
-                lineNumber: 34,
+                lineNumber: 47,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -278,7 +299,7 @@ function TicketCard({ ticket, onClick }) {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ticket-card.tsx",
-                            lineNumber: 50,
+                            lineNumber: 68,
                             columnNumber: 11
                         }, this),
                         ticket.created_at && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -289,7 +310,7 @@ function TicketCard({ ticket, onClick }) {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ticket-card.tsx",
-                            lineNumber: 54,
+                            lineNumber: 72,
                             columnNumber: 13
                         }, this),
                         ticket.Rep_info && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -300,7 +321,7 @@ function TicketCard({ ticket, onClick }) {
                                     children: "รายละเอียดการซ่อม:"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ticket-card.tsx",
-                                    lineNumber: 60,
+                                    lineNumber: 78,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -308,13 +329,13 @@ function TicketCard({ ticket, onClick }) {
                                     children: ticket.Rep_info
                                 }, void 0, false, {
                                     fileName: "[project]/components/ticket-card.tsx",
-                                    lineNumber: 61,
+                                    lineNumber: 79,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ticket-card.tsx",
-                            lineNumber: 59,
+                            lineNumber: 77,
                             columnNumber: 13
                         }, this),
                         ticket.cost && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -325,24 +346,24 @@ function TicketCard({ ticket, onClick }) {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ticket-card.tsx",
-                            lineNumber: 65,
+                            lineNumber: 83,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ticket-card.tsx",
-                    lineNumber: 49,
+                    lineNumber: 67,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ticket-card.tsx",
-                lineNumber: 48,
+                lineNumber: 66,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/ticket-card.tsx",
-        lineNumber: 33,
+        lineNumber: 46,
         columnNumber: 5
     }, this);
 }
@@ -2884,8 +2905,12 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-xs sm:text-sm font-medium text-indigo-700",
-                                children: ticket.work
-                            }, void 0, false, {
+                                children: [
+                                    "[",
+                                    ticket.work,
+                                    "]"
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/components/ticket-detail.tsx",
                                 lineNumber: 405,
                                 columnNumber: 13
@@ -2909,7 +2934,14 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-xs sm:text-sm whitespace-pre-wrap break-words bg-purple-50 p-2 sm:p-3 rounded-md",
-                                children: ticket.detail_work
+                                children: (()=>{
+                                    try {
+                                        const details = JSON.parse(ticket.detail_work);
+                                        return `บริษัท: ${details.company || '-'}, สาขา: ${details.branch || '-'}, อุปกรณ์: ${details.device || ticket.asset_id || '-'}`;
+                                    } catch  {
+                                        return ticket.detail_work;
+                                    }
+                                })()
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
                                 lineNumber: 412,
@@ -2929,21 +2961,25 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "อาการ/ปัญหาที่แจ้ง"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 418,
+                                lineNumber: 427,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-xs sm:text-sm whitespace-pre-wrap break-words",
-                                children: ticket.Ref
-                            }, void 0, false, {
+                                children: [
+                                    "[",
+                                    ticket.Ref,
+                                    "]"
+                                ]
+                            }, void 0, true, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 419,
+                                lineNumber: 428,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 417,
+                        lineNumber: 426,
                         columnNumber: 11
                     }, this),
                     ticket.img && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2954,7 +2990,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "รูปภาพ/วิดีโอประกอบ"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 425,
+                                lineNumber: 434,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -2967,20 +3003,20 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                         className: "h-4 w-4 mr-1"
                                     }, void 0, false, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 432,
+                                        lineNumber: 441,
                                         columnNumber: 15
                                     }, this),
                                     "คลิกเพื่อดูรูป/วิดีโอ"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 426,
+                                lineNumber: 435,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 424,
+                        lineNumber: 433,
                         columnNumber: 11
                     }, this),
                     (ticket.Rep_info || ticket.Re_Rep1 || ticket.Re_Rep2) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2991,7 +3027,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "รายละเอียดการซ่อม"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 440,
+                                lineNumber: 449,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3005,7 +3041,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: "รอบปัจจุบัน"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 444,
+                                                lineNumber: 453,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3013,13 +3049,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: ticket.Rep_info
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 445,
+                                                lineNumber: 454,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 443,
+                                        lineNumber: 452,
                                         columnNumber: 17
                                     }, this),
                                     ticket.Re_Rep1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3030,7 +3066,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: "รอบที่ 2"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 450,
+                                                lineNumber: 459,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3038,13 +3074,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: ticket.Re_Rep1
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 451,
+                                                lineNumber: 460,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 449,
+                                        lineNumber: 458,
                                         columnNumber: 17
                                     }, this),
                                     ticket.Re_Rep2 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3055,7 +3091,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: "รอบที่ 3"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 456,
+                                                lineNumber: 465,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3063,25 +3099,25 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: ticket.Re_Rep2
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 457,
+                                                lineNumber: 466,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 455,
+                                        lineNumber: 464,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 441,
+                                lineNumber: 450,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 439,
+                        lineNumber: 448,
                         columnNumber: 11
                     }, this),
                     ticket.cost && ticket.cost !== "0" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3092,7 +3128,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "ค่าใช้จ่าย"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 466,
+                                lineNumber: 475,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3109,7 +3145,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 469,
+                                                lineNumber: 478,
                                                 columnNumber: 17
                                             }, this),
                                             ticket.price_type !== null && ticket.price_type !== undefined && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Badge"], {
@@ -3118,13 +3154,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: ticket.price_type === 0 ? "เบิกจ่าย" : "สั่งซื้อ"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 471,
+                                                lineNumber: 480,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 468,
+                                        lineNumber: 477,
                                         columnNumber: 15
                                     }, this),
                                     ticket.description_price && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3135,7 +3171,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: "รายละเอียด"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 478,
+                                                lineNumber: 487,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3143,25 +3179,25 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: ticket.description_price
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 479,
+                                                lineNumber: 488,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 477,
+                                        lineNumber: 486,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 467,
+                                lineNumber: 476,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 465,
+                        lineNumber: 474,
                         columnNumber: 11
                     }, this),
                     ticket.repair_count !== null && ticket.repair_count !== undefined && ticket.repair_count > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3172,7 +3208,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "จำนวนรอบการซ่อม"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 488,
+                                lineNumber: 497,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3183,13 +3219,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 489,
+                                lineNumber: 498,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 487,
+                        lineNumber: 496,
                         columnNumber: 11
                     }, this),
                     (ticket.Comment_re || ticket.Comment_re2 || ticket.Comment_re3) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3200,7 +3236,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "เหตุผลที่ไม่ผ่านการประเมิน"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 495,
+                                lineNumber: 504,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3214,7 +3250,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: "ครั้งล่าสุด"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 499,
+                                                lineNumber: 508,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3222,13 +3258,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: ticket.Comment_re
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 500,
+                                                lineNumber: 509,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 498,
+                                        lineNumber: 507,
                                         columnNumber: 17
                                     }, this),
                                     ticket.Comment_re2 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3239,7 +3275,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: "ครั้งที่ 2"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 505,
+                                                lineNumber: 514,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3247,13 +3283,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: ticket.Comment_re2
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 506,
+                                                lineNumber: 515,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 504,
+                                        lineNumber: 513,
                                         columnNumber: 17
                                     }, this),
                                     ticket.Comment_re3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3264,7 +3300,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: "ครั้งที่ 3"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 511,
+                                                lineNumber: 520,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3272,25 +3308,25 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 children: ticket.Comment_re3
                                             }, void 0, false, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 512,
+                                                lineNumber: 521,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 510,
+                                        lineNumber: 519,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 496,
+                                lineNumber: 505,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 494,
+                        lineNumber: 503,
                         columnNumber: 11
                     }, this),
                     ticket.cancel_whit && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3301,7 +3337,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "ยกเลิกโดย"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 521,
+                                lineNumber: 530,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3309,13 +3345,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: ticket.cancel_whit
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 522,
+                                lineNumber: 531,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 520,
+                        lineNumber: 529,
                         columnNumber: 11
                     }, this),
                     ticket.start_repair && ticket.start_repair.trim() !== '' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3326,7 +3362,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "วันที่เริ่มซ่อม (start_repair)"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 528,
+                                lineNumber: 537,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3334,13 +3370,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: ticket.start_repair
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 529,
+                                lineNumber: 538,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 527,
+                        lineNumber: 536,
                         columnNumber: 11
                     }, this),
                     ticket.finish_repair && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3351,7 +3387,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "วันที่ซ่อมเสร็จ/ยกเลิก (finish_repair)"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 535,
+                                lineNumber: 544,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3363,13 +3399,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 })
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 536,
+                                lineNumber: 545,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 534,
+                        lineNumber: 543,
                         columnNumber: 11
                     }, this),
                     existingFeedback && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3380,7 +3416,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "ผลการประเมินความพึงพอใจ"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 549,
+                                lineNumber: 558,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3395,7 +3431,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                     children: "ระดับความพึงพอใจ"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                    lineNumber: 553,
+                                                    lineNumber: 562,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3414,12 +3450,12 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                                     children: "★"
                                                                 }, star, false, {
                                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                                    lineNumber: 557,
+                                                                    lineNumber: 566,
                                                                     columnNumber: 25
                                                                 }, this))
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ticket-detail.tsx",
-                                                            lineNumber: 555,
+                                                            lineNumber: 564,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3433,19 +3469,19 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/ticket-detail.tsx",
-                                                            lineNumber: 565,
+                                                            lineNumber: 574,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                    lineNumber: 554,
+                                                    lineNumber: 563,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 552,
+                                            lineNumber: 561,
                                             columnNumber: 17
                                         }, this),
                                         existingFeedback.form_description && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3455,7 +3491,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                     children: "หมายเหตุ / ข้อเสนอแนะ"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                    lineNumber: 577,
+                                                    lineNumber: 586,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3463,13 +3499,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                     children: existingFeedback.form_description
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                    lineNumber: 578,
+                                                    lineNumber: 587,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 576,
+                                            lineNumber: 585,
                                             columnNumber: 19
                                         }, this),
                                         existingFeedback.created_at && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3487,29 +3523,29 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/ticket-detail.tsx",
-                                                lineNumber: 586,
+                                                lineNumber: 595,
                                                 columnNumber: 21
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 585,
+                                            lineNumber: 594,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 551,
+                                    lineNumber: 560,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 550,
+                                lineNumber: 559,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 548,
+                        lineNumber: 557,
                         columnNumber: 11
                     }, this),
                     ticket.total_date && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3520,7 +3556,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "วันที่ใช้ดำเนินการ (total_date)"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 604,
+                                lineNumber: 613,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3528,13 +3564,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: ticket.total_date
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 605,
+                                lineNumber: 614,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 603,
+                        lineNumber: 612,
                         columnNumber: 11
                     }, this),
                     ticket.updated_at && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3545,7 +3581,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "อัปเดตล่าสุด"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 611,
+                                lineNumber: 620,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3559,13 +3595,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 })
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 612,
+                                lineNumber: 621,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/ticket-detail.tsx",
-                        lineNumber: 610,
+                        lineNumber: 619,
                         columnNumber: 11
                     }, this)
                 ]
@@ -3583,7 +3619,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                 }
             }, void 0, false, {
                 fileName: "[project]/components/ticket-detail.tsx",
-                lineNumber: 626,
+                lineNumber: 635,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -3597,12 +3633,12 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: existingFeedback ? 'ผลการประเมินความพึงพอใจ' : 'ประเมินความพึงพอใจ'
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 640,
+                                lineNumber: 649,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/ticket-detail.tsx",
-                            lineNumber: 639,
+                            lineNumber: 648,
                             columnNumber: 11
                         }, this),
                         existingFeedback ? // แสดงผลการประเมินที่มีอยู่แล้ว
@@ -3617,7 +3653,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "ระดับความพึงพอใจ"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 647,
+                                            lineNumber: 656,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3655,7 +3691,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                             className: "h-4 w-4 text-blue-600"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ticket-detail.tsx",
-                                                            lineNumber: 666,
+                                                            lineNumber: 675,
                                                             columnNumber: 25
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -3663,25 +3699,25 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                             children: option.label
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ticket-detail.tsx",
-                                                            lineNumber: 672,
+                                                            lineNumber: 681,
                                                             columnNumber: 25
                                                         }, this)
                                                     ]
                                                 }, option.value, true, {
                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                    lineNumber: 658,
+                                                    lineNumber: 667,
                                                     columnNumber: 23
                                                 }, this);
                                             })
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 648,
+                                            lineNumber: 657,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 646,
+                                    lineNumber: 655,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3692,7 +3728,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "หมายเหตุ / ข้อเสนอแนะ"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 682,
+                                            lineNumber: 691,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3700,13 +3736,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: existingFeedback.form_description?.split(' - ')[1] || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 683,
+                                            lineNumber: 692,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 681,
+                                    lineNumber: 690,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3718,12 +3754,12 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/ticket-detail.tsx",
-                                        lineNumber: 689,
+                                        lineNumber: 698,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 688,
+                                    lineNumber: 697,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -3733,13 +3769,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                     children: "ปิด"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 692,
+                                    lineNumber: 701,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ticket-detail.tsx",
-                            lineNumber: 645,
+                            lineNumber: 654,
                             columnNumber: 13
                         }, this) : // ฟอร์มประเมินใหม่
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -3758,13 +3794,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                     children: "*"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                    lineNumber: 704,
+                                                    lineNumber: 713,
                                                     columnNumber: 73
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 704,
+                                            lineNumber: 713,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3809,7 +3845,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                             className: "h-4 w-4 text-blue-600 focus:ring-blue-500"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ticket-detail.tsx",
-                                                            lineNumber: 724,
+                                                            lineNumber: 733,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
@@ -3817,24 +3853,24 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                             children: option.label
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/ticket-detail.tsx",
-                                                            lineNumber: 737,
+                                                            lineNumber: 746,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, option.value, true, {
                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                    lineNumber: 713,
+                                                    lineNumber: 722,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 705,
+                                            lineNumber: 714,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 703,
+                                    lineNumber: 712,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3849,13 +3885,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                                     children: "*"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/ticket-detail.tsx",
-                                                    lineNumber: 749,
+                                                    lineNumber: 758,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 746,
+                                            lineNumber: 755,
                                             columnNumber: 17
                                         }, this),
                                         surveyData.rating < 3 && surveyData.rating > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3863,7 +3899,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "* กรุณาระบุเหตุผลที่ไม่ผ่านการประเมิน"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 753,
+                                            lineNumber: 762,
                                             columnNumber: 19
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -3878,13 +3914,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             required: surveyData.rating < 3 && surveyData.rating > 0
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 757,
+                                            lineNumber: 766,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 745,
+                                    lineNumber: 754,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3905,7 +3941,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "ยกเลิก"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 776,
+                                            lineNumber: 785,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -3915,30 +3951,30 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: isSubmittingSurvey ? 'กำลังบันทึก...' : 'ส่งการประเมิน'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 788,
+                                            lineNumber: 797,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 775,
+                                    lineNumber: 784,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ticket-detail.tsx",
-                            lineNumber: 702,
+                            lineNumber: 711,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ticket-detail.tsx",
-                    lineNumber: 638,
+                    lineNumber: 647,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ticket-detail.tsx",
-                lineNumber: 637,
+                lineNumber: 646,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -3952,12 +3988,12 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "ข้อมูลทรัพย์สิน"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 805,
+                                lineNumber: 814,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/ticket-detail.tsx",
-                            lineNumber: 804,
+                            lineNumber: 813,
                             columnNumber: 11
                         }, this),
                         assetData && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3970,7 +4006,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "Asset Code"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 810,
+                                            lineNumber: 819,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3978,13 +4014,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.asset_code || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 811,
+                                            lineNumber: 820,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 809,
+                                    lineNumber: 818,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3994,7 +4030,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "ผู้ใช้งาน"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 814,
+                                            lineNumber: 823,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4002,13 +4038,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.user_name || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 815,
+                                            lineNumber: 824,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 813,
+                                    lineNumber: 822,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4018,7 +4054,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "สาขา"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 818,
+                                            lineNumber: 827,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4026,13 +4062,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.site || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 819,
+                                            lineNumber: 828,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 817,
+                                    lineNumber: 826,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4042,7 +4078,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "แผนก"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 822,
+                                            lineNumber: 831,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4050,13 +4086,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.department || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 823,
+                                            lineNumber: 832,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 821,
+                                    lineNumber: 830,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4066,7 +4102,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "อุปกรณ์"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 826,
+                                            lineNumber: 835,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4074,13 +4110,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.device_name || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 827,
+                                            lineNumber: 836,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 825,
+                                    lineNumber: 834,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4090,7 +4126,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "ยี่ห้อ"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 830,
+                                            lineNumber: 839,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4098,13 +4134,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.brand || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 831,
+                                            lineNumber: 840,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 829,
+                                    lineNumber: 838,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4114,7 +4150,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "CPU"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 834,
+                                            lineNumber: 843,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4122,13 +4158,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.cpu || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 835,
+                                            lineNumber: 844,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 833,
+                                    lineNumber: 842,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4138,7 +4174,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "RAM"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 838,
+                                            lineNumber: 847,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4146,13 +4182,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.ram || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 839,
+                                            lineNumber: 848,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 837,
+                                    lineNumber: 846,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4162,7 +4198,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "Harddisk"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 842,
+                                            lineNumber: 851,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4170,13 +4206,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.harddisk || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 843,
+                                            lineNumber: 852,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 841,
+                                    lineNumber: 850,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4186,7 +4222,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "IP Address"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 846,
+                                            lineNumber: 855,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4194,13 +4230,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.ip_address || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 847,
+                                            lineNumber: 856,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 845,
+                                    lineNumber: 854,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4210,7 +4246,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "MAC Address"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 850,
+                                            lineNumber: 859,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4218,13 +4254,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.mac_address || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 851,
+                                            lineNumber: 860,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 849,
+                                    lineNumber: 858,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4234,7 +4270,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "Serial Number"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 854,
+                                            lineNumber: 863,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4242,13 +4278,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.serial_number || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 855,
+                                            lineNumber: 864,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 853,
+                                    lineNumber: 862,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4258,7 +4294,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "หมายเลข"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 858,
+                                            lineNumber: 867,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4266,13 +4302,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.number || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 859,
+                                            lineNumber: 868,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 857,
+                                    lineNumber: 866,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4282,7 +4318,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "License"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 862,
+                                            lineNumber: 871,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4290,13 +4326,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.license || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 863,
+                                            lineNumber: 872,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 861,
+                                    lineNumber: 870,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4306,7 +4342,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "หมวดหมู่"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 866,
+                                            lineNumber: 875,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Badge"], {
@@ -4314,13 +4350,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.category || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 867,
+                                            lineNumber: 876,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 865,
+                                    lineNumber: 874,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4330,7 +4366,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "ราคา"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 870,
+                                            lineNumber: 879,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4338,13 +4374,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.cost || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 871,
+                                            lineNumber: 880,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 869,
+                                    lineNumber: 878,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4354,7 +4390,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "วันที่ซื้อ"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 874,
+                                            lineNumber: 883,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4362,13 +4398,13 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.purchase_date || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 875,
+                                            lineNumber: 884,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 873,
+                                    lineNumber: 882,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4378,7 +4414,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: "Ref Device"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 878,
+                                            lineNumber: 887,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4386,30 +4422,30 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             children: assetData.ref_devicename || '-'
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 879,
+                                            lineNumber: 888,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 877,
+                                    lineNumber: 886,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/ticket-detail.tsx",
-                            lineNumber: 808,
+                            lineNumber: 817,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ticket-detail.tsx",
-                    lineNumber: 803,
+                    lineNumber: 812,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ticket-detail.tsx",
-                lineNumber: 802,
+                lineNumber: 811,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -4423,12 +4459,12 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                 children: "รูปภาพ / วิดีโอประกอบ"
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 890,
+                                lineNumber: 899,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/ticket-detail.tsx",
-                            lineNumber: 889,
+                            lineNumber: 898,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4446,7 +4482,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             type: "video/mp4"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 907,
+                                            lineNumber: 916,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("source", {
@@ -4454,7 +4490,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             type: "video/webm"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 908,
+                                            lineNumber: 917,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("source", {
@@ -4462,14 +4498,14 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                             type: "video/quicktime"
                                         }, void 0, false, {
                                             fileName: "[project]/components/ticket-detail.tsx",
-                                            lineNumber: 909,
+                                            lineNumber: 918,
                                             columnNumber: 21
                                         }, this),
                                         "เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 901,
+                                    lineNumber: 910,
                                     columnNumber: 19
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
                                     src: ticket.img,
@@ -4477,28 +4513,28 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                                     className: "max-w-full max-h-[70vh] rounded-lg border object-contain"
                                 }, void 0, false, {
                                     fileName: "[project]/components/ticket-detail.tsx",
-                                    lineNumber: 913,
+                                    lineNumber: 922,
                                     columnNumber: 19
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/ticket-detail.tsx",
-                                lineNumber: 894,
+                                lineNumber: 903,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/ticket-detail.tsx",
-                            lineNumber: 892,
+                            lineNumber: 901,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/ticket-detail.tsx",
-                    lineNumber: 888,
+                    lineNumber: 897,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/ticket-detail.tsx",
-                lineNumber: 887,
+                lineNumber: 896,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$feedback$2d$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["FeedbackDialog"], {
@@ -4511,7 +4547,7 @@ function TicketDetail({ ticket, isAdmin = false, onStatusChange, onClose, isUpda
                 }
             }, void 0, false, {
                 fileName: "[project]/components/ticket-detail.tsx",
-                lineNumber: 926,
+                lineNumber: 935,
                 columnNumber: 7
             }, this)
         ]
@@ -7703,6 +7739,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sweetalert2$
 function UserDashboard() {
     const { user } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$auth$2d$context$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
     const [tickets, setTickets] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [maintenanceFeedbacks, setMaintenanceFeedbacks] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
     const [selectedTicket, setSelectedTicket] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isUpdating, setIsUpdating] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
@@ -7710,6 +7747,7 @@ function UserDashboard() {
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         if (user?.name) {
             fetchTickets();
+            fetchPendingFeedbacks();
         }
     }, [
         user?.name
@@ -7725,6 +7763,23 @@ function UserDashboard() {
         } catch (error) {
             console.error("Failed to fetch tickets:", error);
             setTickets([]);
+        }
+    };
+    const fetchPendingFeedbacks = async ()=>{
+        try {
+            const response = await fetch(`/api/maintenance-records?user_name=${encodeURIComponent(user?.name || '')}`);
+            const result = await response.json();
+            if (result.success) {
+                // กรองเฉพาะ records ที่ยังไม่ได้ประเมิน
+                const pendingRecords = result.data.filter((record)=>{
+                    return !record.feedback_id // ไม่มี feedback_id หมายความว่ายังไม่ได้ประเมิน
+                    ;
+                });
+                setMaintenanceFeedbacks(pendingRecords);
+            }
+        } catch (error) {
+            console.error("Failed to fetch maintenance feedbacks:", error);
+            setMaintenanceFeedbacks([]);
         }
     };
     const handleStatusChange = async (status)=>{
@@ -7877,12 +7932,12 @@ function UserDashboard() {
                             userId: user?.id || ""
                         }, void 0, false, {
                             fileName: "[project]/components/user-dashboard.tsx",
-                            lineNumber: 183,
+                            lineNumber: 202,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/user-dashboard.tsx",
-                        lineNumber: 182,
+                        lineNumber: 201,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7898,7 +7953,7 @@ function UserDashboard() {
                                             children: "คำขอของคุณ"
                                         }, void 0, false, {
                                             fileName: "[project]/components/user-dashboard.tsx",
-                                            lineNumber: 190,
+                                            lineNumber: 209,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -7914,7 +7969,7 @@ function UserDashboard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 192,
+                                                    lineNumber: 211,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -7927,7 +7982,20 @@ function UserDashboard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 202,
+                                                    lineNumber: 221,
+                                                    columnNumber: 17
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                    onClick: ()=>setActiveTab("ma-feedback"),
+                                                    className: `px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === "ma-feedback" ? "bg-green-600 text-white" : "bg-muted text-muted-foreground hover:bg-muted/80"}`,
+                                                    children: [
+                                                        "ประเมิน MA (",
+                                                        maintenanceFeedbacks.length,
+                                                        ")"
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                    lineNumber: 231,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -7940,19 +8008,19 @@ function UserDashboard() {
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 212,
+                                                    lineNumber: 241,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/user-dashboard.tsx",
-                                            lineNumber: 191,
+                                            lineNumber: 210,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/user-dashboard.tsx",
-                                    lineNumber: 189,
+                                    lineNumber: 208,
                                     columnNumber: 13
                                 }, this),
                                 tickets.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -7960,7 +8028,7 @@ function UserDashboard() {
                                     children: "ยังไม่มีคำขอ"
                                 }, void 0, false, {
                                     fileName: "[project]/components/user-dashboard.tsx",
-                                    lineNumber: 226,
+                                    lineNumber: 255,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
                                     children: activeTab === "active" ? tickets.filter((t)=>t.Status === 0 || t.Status === 1).length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -7968,7 +8036,7 @@ function UserDashboard() {
                                         children: "ไม่มีคำขอที่กำลังดำเนินการ"
                                     }, void 0, false, {
                                         fileName: "[project]/components/user-dashboard.tsx",
-                                        lineNumber: 231,
+                                        lineNumber: 260,
                                         columnNumber: 21
                                     }, this) : tickets.filter((t)=>t.Status === 0 || t.Status === 1).map((ticket)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "relative",
@@ -7985,7 +8053,7 @@ function UserDashboard() {
                                                             children: "ดูรายละเอียด"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/user-dashboard.tsx",
-                                                            lineNumber: 238,
+                                                            lineNumber: 267,
                                                             columnNumber: 29
                                                         }, this),
                                                         ticket.Status === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -8040,33 +8108,249 @@ function UserDashboard() {
                                                             children: "ยกเลิก"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/user-dashboard.tsx",
-                                                            lineNumber: 248,
+                                                            lineNumber: 277,
                                                             columnNumber: 31
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 237,
+                                                    lineNumber: 266,
                                                     columnNumber: 27
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ticket$2d$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TicketCard"], {
                                                     ticket: ticket
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 299,
+                                                    lineNumber: 328,
                                                     columnNumber: 27
                                                 }, this)
                                             ]
                                         }, ticket.request_id, true, {
                                             fileName: "[project]/components/user-dashboard.tsx",
-                                            lineNumber: 236,
+                                            lineNumber: 265,
                                             columnNumber: 25
-                                        }, this)) : activeTab === "assessment" ? tickets.filter((t)=>t.Status === 4).length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        }, this)) : activeTab === "ma-feedback" ? maintenanceFeedbacks.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-muted-foreground",
+                                        children: "ไม่มีแบบประเมิน MA ที่รอดำเนินการ"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/user-dashboard.tsx",
+                                        lineNumber: 334,
+                                        columnNumber: 21
+                                    }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "space-y-3",
+                                        children: maintenanceFeedbacks.map((record)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                className: "border rounded-lg p-4 bg-gradient-to-r from-green-50 to-emerald-50 hover:shadow-md transition-shadow",
+                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "flex justify-between items-start",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "space-y-2 flex-1",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "flex items-center gap-2",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                            className: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800",
+                                                                            children: "✅ MA เสร็จสิ้น"
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                                            lineNumber: 345,
+                                                                            columnNumber: 33
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                            className: "text-sm text-gray-500",
+                                                                            children: new Date(record.checked_at).toLocaleDateString('th-TH', {
+                                                                                year: 'numeric',
+                                                                                month: 'long',
+                                                                                day: 'numeric'
+                                                                            })
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                                            lineNumber: 348,
+                                                                            columnNumber: 33
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                    lineNumber: 344,
+                                                                    columnNumber: 31
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                                                    className: "font-semibold text-lg",
+                                                                    children: record.device_name
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                    lineNumber: 356,
+                                                                    columnNumber: 31
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "grid grid-cols-2 gap-2 text-sm",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                            children: [
+                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                    className: "text-gray-500",
+                                                                                    children: "รหัสทรัพย์สิน:"
+                                                                                }, void 0, false, {
+                                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                                    lineNumber: 359,
+                                                                                    columnNumber: 35
+                                                                                }, this),
+                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                    className: "ml-2 font-medium",
+                                                                                    children: record.asset_code
+                                                                                }, void 0, false, {
+                                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                                    lineNumber: 360,
+                                                                                    columnNumber: 35
+                                                                                }, this)
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                                            lineNumber: 358,
+                                                                            columnNumber: 33
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                            children: [
+                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                    className: "text-gray-500",
+                                                                                    children: "ผู้ดำเนินการ:"
+                                                                                }, void 0, false, {
+                                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                                    lineNumber: 363,
+                                                                                    columnNumber: 35
+                                                                                }, this),
+                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                    className: "ml-2 font-medium",
+                                                                                    children: record.checked_by
+                                                                                }, void 0, false, {
+                                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                                    lineNumber: 364,
+                                                                                    columnNumber: 35
+                                                                                }, this)
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                                            lineNumber: 362,
+                                                                            columnNumber: 33
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                            children: [
+                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                    className: "text-gray-500",
+                                                                                    children: "สาขา:"
+                                                                                }, void 0, false, {
+                                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                                    lineNumber: 367,
+                                                                                    columnNumber: 35
+                                                                                }, this),
+                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                    className: "ml-2 font-medium",
+                                                                                    children: record.site
+                                                                                }, void 0, false, {
+                                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                                    lineNumber: 368,
+                                                                                    columnNumber: 35
+                                                                                }, this)
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                                            lineNumber: 366,
+                                                                            columnNumber: 33
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                            children: [
+                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                    className: "text-gray-500",
+                                                                                    children: "แผนก:"
+                                                                                }, void 0, false, {
+                                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                                    lineNumber: 371,
+                                                                                    columnNumber: 35
+                                                                                }, this),
+                                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                                    className: "ml-2 font-medium",
+                                                                                    children: record.department
+                                                                                }, void 0, false, {
+                                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                                    lineNumber: 372,
+                                                                                    columnNumber: 35
+                                                                                }, this)
+                                                                            ]
+                                                                        }, void 0, true, {
+                                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                                            lineNumber: 370,
+                                                                            columnNumber: 33
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                    lineNumber: 357,
+                                                                    columnNumber: 31
+                                                                }, this),
+                                                                record.remarks && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    className: "mt-2 text-sm",
+                                                                    children: [
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                            className: "text-gray-500",
+                                                                            children: "หมายเหตุ:"
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                                            lineNumber: 377,
+                                                                            columnNumber: 35
+                                                                        }, this),
+                                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                            className: "ml-2 text-gray-700",
+                                                                            children: record.remarks
+                                                                        }, void 0, false, {
+                                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                                            lineNumber: 378,
+                                                                            columnNumber: 35
+                                                                        }, this)
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                                    lineNumber: 376,
+                                                                    columnNumber: 33
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                            lineNumber: 343,
+                                                            columnNumber: 29
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                            onClick: ()=>{
+                                                                window.open(`/maintenance-feedback?token=${record.feedback_token}&id=${record.id}`, '_blank');
+                                                            },
+                                                            className: "ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap",
+                                                            children: "⭐ ประเมินความพึงพอใจ"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/components/user-dashboard.tsx",
+                                                            lineNumber: 382,
+                                                            columnNumber: 29
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/components/user-dashboard.tsx",
+                                                    lineNumber: 342,
+                                                    columnNumber: 27
+                                                }, this)
+                                            }, record.id, false, {
+                                                fileName: "[project]/components/user-dashboard.tsx",
+                                                lineNumber: 338,
+                                                columnNumber: 25
+                                            }, this))
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/user-dashboard.tsx",
+                                        lineNumber: 336,
+                                        columnNumber: 21
+                                    }, this) : activeTab === "assessment" ? tickets.filter((t)=>t.Status === 4).length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "text-muted-foreground",
                                         children: "ไม่มีคำขอที่รอการประเมิน"
                                     }, void 0, false, {
                                         fileName: "[project]/components/user-dashboard.tsx",
-                                        lineNumber: 305,
+                                        lineNumber: 397,
                                         columnNumber: 21
                                     }, this) : tickets.filter((t)=>t.Status === 4).map((ticket)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "relative",
@@ -8082,32 +8366,32 @@ function UserDashboard() {
                                                         children: "ดูรายละเอียด"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/user-dashboard.tsx",
-                                                        lineNumber: 312,
+                                                        lineNumber: 404,
                                                         columnNumber: 29
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 311,
+                                                    lineNumber: 403,
                                                     columnNumber: 27
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ticket$2d$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TicketCard"], {
                                                     ticket: ticket
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 322,
+                                                    lineNumber: 414,
                                                     columnNumber: 27
                                                 }, this)
                                             ]
                                         }, ticket.request_id, true, {
                                             fileName: "[project]/components/user-dashboard.tsx",
-                                            lineNumber: 310,
+                                            lineNumber: 402,
                                             columnNumber: 25
                                         }, this)) : tickets.filter((t)=>t.Status === 2 || t.Status === 3).length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                         className: "text-muted-foreground",
                                         children: "ไม่มีคำขอที่เสร็จสิ้น"
                                     }, void 0, false, {
                                         fileName: "[project]/components/user-dashboard.tsx",
-                                        lineNumber: 328,
+                                        lineNumber: 420,
                                         columnNumber: 21
                                     }, this) : tickets.filter((t)=>t.Status === 2 || t.Status === 3).map((ticket)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "relative",
@@ -8123,43 +8407,43 @@ function UserDashboard() {
                                                         children: "ดูรายละเอียด"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/user-dashboard.tsx",
-                                                        lineNumber: 335,
+                                                        lineNumber: 427,
                                                         columnNumber: 29
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 334,
+                                                    lineNumber: 426,
                                                     columnNumber: 27
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ticket$2d$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["TicketCard"], {
                                                     ticket: ticket
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/user-dashboard.tsx",
-                                                    lineNumber: 345,
+                                                    lineNumber: 437,
                                                     columnNumber: 27
                                                 }, this)
                                             ]
                                         }, ticket.request_id, true, {
                                             fileName: "[project]/components/user-dashboard.tsx",
-                                            lineNumber: 333,
+                                            lineNumber: 425,
                                             columnNumber: 25
                                         }, this))
                                 }, void 0, false)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/user-dashboard.tsx",
-                            lineNumber: 188,
+                            lineNumber: 207,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/user-dashboard.tsx",
-                        lineNumber: 187,
+                        lineNumber: 206,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/user-dashboard.tsx",
-                lineNumber: 180,
+                lineNumber: 199,
                 columnNumber: 7
             }, this),
             selectedTicket && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -8173,23 +8457,23 @@ function UserDashboard() {
                         isUpdating: isUpdating
                     }, void 0, false, {
                         fileName: "[project]/components/user-dashboard.tsx",
-                        lineNumber: 360,
+                        lineNumber: 452,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/components/user-dashboard.tsx",
-                    lineNumber: 359,
+                    lineNumber: 451,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/user-dashboard.tsx",
-                lineNumber: 358,
+                lineNumber: 450,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/user-dashboard.tsx",
-        lineNumber: 179,
+        lineNumber: 198,
         columnNumber: 5
     }, this);
 }
@@ -8492,6 +8776,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$re
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chart$2d$column$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__BarChart3$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/chart-column.js [app-ssr] (ecmascript) <export default as BarChart3>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$down$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronDown$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/chevron-down.js [app-ssr] (ecmascript) <export default as ChevronDown>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$key$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Key$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/key.js [app-ssr] (ecmascript) <export default as Key>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$house$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Home$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/house.js [app-ssr] (ecmascript) <export default as Home>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$sweetalert2$2f$dist$2f$sweetalert2$2e$esm$2e$all$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/sweetalert2/dist/sweetalert2.esm.all.js [app-ssr] (ecmascript)");
 "use client";
@@ -8837,11 +9122,11 @@ function Dashboard() {
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
-                                                        onClick: ()=>router.push('/assets'),
-                                                        className: "cursor-pointer py-3 px-3 hover:bg-blue-50 focus:bg-blue-50",
+                                                        onClick: ()=>router.push('/dashboard'),
+                                                        className: "cursor-pointer py-3 px-3 hover:bg-gray-50 focus:bg-gray-50",
                                                         children: [
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$monitor$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Monitor$3e$__["Monitor"], {
-                                                                className: "h-5 w-5 mr-3 text-blue-600"
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$house$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Home$3e$__["Home"], {
+                                                                className: "h-5 w-5 mr-3 text-gray-600"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
                                                                 lineNumber: 317,
@@ -8849,7 +9134,7 @@ function Dashboard() {
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                 className: "text-base",
-                                                                children: "จัดการทรัพย์สิน"
+                                                                children: "หน้าแรก"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
                                                                 lineNumber: 318,
@@ -8862,11 +9147,11 @@ function Dashboard() {
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
-                                                        onClick: ()=>router.push('/users'),
-                                                        className: "cursor-pointer py-3 px-3 hover:bg-green-50 focus:bg-green-50",
+                                                        onClick: ()=>router.push('/assets'),
+                                                        className: "cursor-pointer py-3 px-3 hover:bg-blue-50 focus:bg-blue-50",
                                                         children: [
-                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$users$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Users$3e$__["Users"], {
-                                                                className: "h-5 w-5 mr-3 text-green-600"
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$monitor$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Monitor$3e$__["Monitor"], {
+                                                                className: "h-5 w-5 mr-3 text-blue-600"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
                                                                 lineNumber: 324,
@@ -8874,7 +9159,7 @@ function Dashboard() {
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                 className: "text-base",
-                                                                children: "จัดการผู้ใช้"
+                                                                children: "จัดการทรัพย์สิน"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
                                                                 lineNumber: 325,
@@ -8884,6 +9169,31 @@ function Dashboard() {
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
                                                         lineNumber: 320,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
+                                                        onClick: ()=>router.push('/users'),
+                                                        className: "cursor-pointer py-3 px-3 hover:bg-green-50 focus:bg-green-50",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$users$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Users$3e$__["Users"], {
+                                                                className: "h-5 w-5 mr-3 text-green-600"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/app/dashboard/page.tsx",
+                                                                lineNumber: 331,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                className: "text-base",
+                                                                children: "จัดการผู้ใช้"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/app/dashboard/page.tsx",
+                                                                lineNumber: 332,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/app/dashboard/page.tsx",
+                                                        lineNumber: 327,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -8909,20 +9219,20 @@ function Dashboard() {
                                                                         ry: "2"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                                        lineNumber: 332,
+                                                                        lineNumber: 339,
                                                                         columnNumber: 25
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
                                                                         d: "M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                                        lineNumber: 333,
+                                                                        lineNumber: 340,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 331,
+                                                                lineNumber: 338,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8930,13 +9240,13 @@ function Dashboard() {
                                                                 children: "จัดการอุปกรณ์เบิกจ่าย"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 335,
+                                                                lineNumber: 342,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 327,
+                                                        lineNumber: 334,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -8957,20 +9267,20 @@ function Dashboard() {
                                                                         d: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                                        lineNumber: 358,
+                                                                        lineNumber: 365,
                                                                         columnNumber: 25
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
                                                                         d: "M10.3 21a1.94 1.94 0 0 0 3.4 0"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                                        lineNumber: 359,
+                                                                        lineNumber: 366,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 357,
+                                                                lineNumber: 364,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -8978,13 +9288,13 @@ function Dashboard() {
                                                                 children: "แจ้งเตือนค่า License"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 361,
+                                                                lineNumber: 368,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 353,
+                                                        lineNumber: 360,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -9005,20 +9315,20 @@ function Dashboard() {
                                                                         d: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                                        lineNumber: 368,
+                                                                        lineNumber: 375,
                                                                         columnNumber: 25
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("polyline", {
                                                                         points: "9 22 9 12 15 12 15 22"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                                        lineNumber: 369,
+                                                                        lineNumber: 376,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 367,
+                                                                lineNumber: 374,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -9026,13 +9336,61 @@ function Dashboard() {
                                                                 children: "ตั้งค่าระบบ"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 371,
+                                                                lineNumber: 378,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 363,
+                                                        lineNumber: 370,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
+                                                        onClick: ()=>router.push('/checklist'),
+                                                        className: "cursor-pointer py-3 px-3 hover:bg-pink-50 focus:bg-pink-50",
+                                                        children: [
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                                                xmlns: "http://www.w3.org/2000/svg",
+                                                                className: "h-5 w-5 mr-3 text-pink-600",
+                                                                viewBox: "0 0 24 24",
+                                                                fill: "none",
+                                                                stroke: "currentColor",
+                                                                strokeWidth: "2",
+                                                                strokeLinecap: "round",
+                                                                strokeLinejoin: "round",
+                                                                children: [
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                                        d: "M9 11l3 3L22 4"
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/app/dashboard/page.tsx",
+                                                                        lineNumber: 385,
+                                                                        columnNumber: 25
+                                                                    }, this),
+                                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                                                        d: "M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                                                                    }, void 0, false, {
+                                                                        fileName: "[project]/app/dashboard/page.tsx",
+                                                                        lineNumber: 386,
+                                                                        columnNumber: 25
+                                                                    }, this)
+                                                                ]
+                                                            }, void 0, true, {
+                                                                fileName: "[project]/app/dashboard/page.tsx",
+                                                                lineNumber: 384,
+                                                                columnNumber: 23
+                                                            }, this),
+                                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                className: "text-base",
+                                                                children: "MA Checklist"
+                                                            }, void 0, false, {
+                                                                fileName: "[project]/app/dashboard/page.tsx",
+                                                                lineNumber: 388,
+                                                                columnNumber: 23
+                                                            }, this)
+                                                        ]
+                                                    }, void 0, true, {
+                                                        fileName: "[project]/app/dashboard/page.tsx",
+                                                        lineNumber: 380,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -9043,7 +9401,7 @@ function Dashboard() {
                                                                 className: "h-5 w-5 mr-3 text-purple-600"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 377,
+                                                                lineNumber: 394,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -9051,13 +9409,13 @@ function Dashboard() {
                                                                 children: "Dashboard"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 378,
+                                                                lineNumber: 395,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 373,
+                                                        lineNumber: 390,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
@@ -9068,7 +9426,7 @@ function Dashboard() {
                                                         children: "เมนูผู้ใช้งาน"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 383,
+                                                        lineNumber: 400,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -9079,7 +9437,7 @@ function Dashboard() {
                                                                 className: "h-5 w-5 mr-3 text-blue-600"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 390,
+                                                                lineNumber: 407,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -9087,13 +9445,13 @@ function Dashboard() {
                                                                 children: "ทรัพย์สินของคุณ"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                                lineNumber: 391,
+                                                                lineNumber: 408,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 386,
+                                                        lineNumber: 403,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
@@ -9117,7 +9475,7 @@ function Dashboard() {
                                             children: "ระบบบำรุงรักษา"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/page.tsx",
-                                            lineNumber: 398,
+                                            lineNumber: 415,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -9125,13 +9483,13 @@ function Dashboard() {
                                             children: user.role === "admin" ? "Admin Dashboard" : "User Dashboard"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/page.tsx",
-                                            lineNumber: 399,
+                                            lineNumber: 416,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/dashboard/page.tsx",
-                                    lineNumber: 397,
+                                    lineNumber: 414,
                                     columnNumber: 13
                                 }, this)
                             ]
@@ -9158,7 +9516,7 @@ function Dashboard() {
                                                             children: user.username
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/dashboard/page.tsx",
-                                                            lineNumber: 409,
+                                                            lineNumber: 426,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -9166,31 +9524,31 @@ function Dashboard() {
                                                             children: user.name
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/dashboard/page.tsx",
-                                                            lineNumber: 410,
+                                                            lineNumber: 427,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/dashboard/page.tsx",
-                                                    lineNumber: 408,
+                                                    lineNumber: 425,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$chevron$2d$down$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__ChevronDown$3e$__["ChevronDown"], {
                                                     className: "h-4 w-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/page.tsx",
-                                                    lineNumber: 412,
+                                                    lineNumber: 429,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/dashboard/page.tsx",
-                                            lineNumber: 407,
+                                            lineNumber: 424,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/page.tsx",
-                                        lineNumber: 406,
+                                        lineNumber: 423,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuContent"], {
@@ -9205,7 +9563,7 @@ function Dashboard() {
                                                         children: user.username
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 417,
+                                                        lineNumber: 434,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -9213,7 +9571,7 @@ function Dashboard() {
                                                         children: user.name
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 418,
+                                                        lineNumber: 435,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -9225,18 +9583,18 @@ function Dashboard() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 419,
+                                                        lineNumber: 436,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                lineNumber: 416,
+                                                lineNumber: 433,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuSeparator"], {}, void 0, false, {
                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                lineNumber: 421,
+                                                lineNumber: 438,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -9247,19 +9605,19 @@ function Dashboard() {
                                                         className: "h-4 w-4 mr-2"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/page.tsx",
-                                                        lineNumber: 423,
+                                                        lineNumber: 440,
                                                         columnNumber: 19
                                                     }, this),
                                                     "เปลี่ยนรหัสผ่าน"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                lineNumber: 422,
+                                                lineNumber: 439,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuSeparator"], {}, void 0, false, {
                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                lineNumber: 426,
+                                                lineNumber: 443,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dropdown$2d$menu$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DropdownMenuItem"], {
@@ -9268,24 +9626,24 @@ function Dashboard() {
                                                 children: "Logout"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/page.tsx",
-                                                lineNumber: 427,
+                                                lineNumber: 444,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/page.tsx",
-                                        lineNumber: 415,
+                                        lineNumber: 432,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/page.tsx",
-                                lineNumber: 405,
+                                lineNumber: 422,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/dashboard/page.tsx",
-                            lineNumber: 404,
+                            lineNumber: 421,
                             columnNumber: 11
                         }, this)
                     ]
@@ -9303,16 +9661,16 @@ function Dashboard() {
                 className: "max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full",
                 children: user.role === "admin" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$admin$2d$dashboard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["AdminDashboard"], {}, void 0, false, {
                     fileName: "[project]/app/dashboard/page.tsx",
-                    lineNumber: 438,
+                    lineNumber: 455,
                     columnNumber: 34
                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$user$2d$dashboard$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["UserDashboard"], {}, void 0, false, {
                     fileName: "[project]/app/dashboard/page.tsx",
-                    lineNumber: 438,
+                    lineNumber: 455,
                     columnNumber: 55
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/page.tsx",
-                lineNumber: 437,
+                lineNumber: 454,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Dialog"], {
@@ -9326,12 +9684,12 @@ function Dashboard() {
                                 children: "เปลี่ยนรหัสผ่าน"
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/page.tsx",
-                                lineNumber: 445,
+                                lineNumber: 462,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/dashboard/page.tsx",
-                            lineNumber: 444,
+                            lineNumber: 461,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -9348,7 +9706,7 @@ function Dashboard() {
                                                     children: "รหัสผ่านเดิม"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/page.tsx",
-                                                    lineNumber: 450,
+                                                    lineNumber: 467,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -9360,13 +9718,13 @@ function Dashboard() {
                                                     placeholder: "กรุณากรอกรหัสผ่านเดิม"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/page.tsx",
-                                                    lineNumber: 451,
+                                                    lineNumber: 468,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/dashboard/page.tsx",
-                                            lineNumber: 449,
+                                            lineNumber: 466,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9377,7 +9735,7 @@ function Dashboard() {
                                                     children: "รหัสผ่านใหม่"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/page.tsx",
-                                                    lineNumber: 461,
+                                                    lineNumber: 478,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -9390,13 +9748,13 @@ function Dashboard() {
                                                     minLength: 4
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/page.tsx",
-                                                    lineNumber: 462,
+                                                    lineNumber: 479,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/dashboard/page.tsx",
-                                            lineNumber: 460,
+                                            lineNumber: 477,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -9407,7 +9765,7 @@ function Dashboard() {
                                                     children: "ยืนยันรหัสผ่านใหม่"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/page.tsx",
-                                                    lineNumber: 473,
+                                                    lineNumber: 490,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -9420,19 +9778,19 @@ function Dashboard() {
                                                     minLength: 4
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/page.tsx",
-                                                    lineNumber: 474,
+                                                    lineNumber: 491,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/dashboard/page.tsx",
-                                            lineNumber: 472,
+                                            lineNumber: 489,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/dashboard/page.tsx",
-                                    lineNumber: 448,
+                                    lineNumber: 465,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$dialog$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DialogFooter"], {
@@ -9450,7 +9808,7 @@ function Dashboard() {
                                             children: "ยกเลิก"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/page.tsx",
-                                            lineNumber: 486,
+                                            lineNumber: 503,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -9459,30 +9817,30 @@ function Dashboard() {
                                             children: isChangingPassword ? 'กำลังเปลี่ยน...' : 'เปลี่ยนรหัสผ่าน'
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/page.tsx",
-                                            lineNumber: 499,
+                                            lineNumber: 516,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/dashboard/page.tsx",
-                                    lineNumber: 485,
+                                    lineNumber: 502,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/dashboard/page.tsx",
-                            lineNumber: 447,
+                            lineNumber: 464,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/dashboard/page.tsx",
-                    lineNumber: 443,
+                    lineNumber: 460,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/page.tsx",
-                lineNumber: 442,
+                lineNumber: 459,
                 columnNumber: 7
             }, this)
         ]

@@ -9,7 +9,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
@@ -34,6 +33,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Asset } from '@/lib/types'
+import { formatDateThai, formatDateTimeThai } from '@/lib/utils'
 
 export const columns: ColumnDef<Asset>[] = [
   {
@@ -161,7 +161,7 @@ export const columns: ColumnDef<Asset>[] = [
   {
     accessorKey: 'purchase_date',
     header: 'วันที่ซื้อ',
-    cell: ({ row }) => row.getValue('purchase_date') || '-',
+    cell: ({ row }) => formatDateThai(row.getValue('purchase_date')),
   },
   {
     accessorKey: 'ref_devicename',
@@ -201,6 +201,7 @@ interface AssetsDataTableProps {
   filterCategory: string
   filterDepartment: string
   filterCompany: string
+  search?: string
   departments?: string[]
   sites?: Array<{ site_code: string; site: string }>
   categories?: Array<{ id: number; category: string }>
@@ -209,11 +210,28 @@ interface AssetsDataTableProps {
   onFilterCategoryChange: (value: string) => void
   onFilterDepartmentChange: (value: string) => void
   onFilterCompanyChange: (value: string) => void
+  onSearchChange?: (value: string) => void
 }
 
-export function AssetsDataTable({ data, filterSite, filterCategory, filterDepartment, filterCompany, departments = [], sites = [], categories = [], companies = [], onFilterSiteChange, onFilterCategoryChange, onFilterDepartmentChange, onFilterCompanyChange }: AssetsDataTableProps) {
+export function AssetsDataTable({ data, filterSite, filterCategory, filterDepartment, filterCompany, search = '', departments = [], sites = [], categories = [], companies = [], onFilterSiteChange, onFilterCategoryChange, onFilterDepartmentChange, onFilterCompanyChange, onSearchChange }: AssetsDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [searchInput, setSearchInput] = React.useState(search)
+
+  // Update local search input when prop changes
+  React.useEffect(() => {
+    setSearchInput(search)
+  }, [search])
+
+  // Debounce search to avoid too many API calls
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (onSearchChange && searchInput !== search) {
+        onSearchChange(searchInput)
+      }
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchInput, search, onSearchChange])
   
   // Create columns with access to sites
   const columnsWithSites = React.useMemo(() => {
@@ -257,7 +275,6 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
     ref_devicename: false,
   })
   const [rowSelection, setRowSelection] = React.useState({})
-  const [globalFilter, setGlobalFilter] = React.useState('')
   const [viewAsset, setViewAsset] = React.useState<Asset | null>(null)
   const [editAsset, setEditAsset] = React.useState<Asset | null>(null)
 
@@ -305,10 +322,7 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
     columns: columnsWithSitesAndActions,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: 'includesString',
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
@@ -318,12 +332,6 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
-    },
-    initialState: {
-      pagination: {
-        pageSize: 20,
-      },
     },
   })
 
@@ -393,7 +401,7 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
           </SelectContent>
         </Select>
 
-        {(filterCompany !== 'all' || filterSite !== 'all' || filterCategory !== 'all' || filterDepartment !== 'all') && (
+        {(filterCompany !== 'all' || filterSite !== 'all' || filterCategory !== 'all' || filterDepartment !== 'all' || searchInput) && (
           <Button 
             variant="ghost" 
             onClick={() => {
@@ -401,6 +409,8 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
               onFilterSiteChange('all')
               onFilterCategoryChange('all')
               onFilterDepartmentChange('all')
+              setSearchInput('')
+              onSearchChange?.('')
             }}
           >
             ล้างตัวกรอง
@@ -408,9 +418,9 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
         )}
         
         <Input
-          placeholder="ค้นหา Asset Code, ผู้ใช้งาน, อุปกรณ์..."
-          value={globalFilter ?? ''}
-          onChange={(event) => setGlobalFilter(event.target.value)}
+          placeholder="ค้นหา Asset Code, ผู้ใช้งาน, อุปกรณ์, IP, MAC, Serial..."
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.target.value)}
           className="flex-1 max-w-md"
         />
         <DropdownMenu>
@@ -496,49 +506,9 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          แสดง {table.getFilteredRowModel().rows.length} รายการ
-        </div>
-        <div className="flex items-center space-x-6 lg:space-x-8">
-          <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium">แถวต่อหน้า</p>
-            <select
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value))
-              }}
-              className="h-8 w-[70px] rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-            >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex w-[100px] items-center justify-center text-sm font-medium">
-            หน้า {table.getState().pagination.pageIndex + 1} จาก{' '}
-            {table.getPageCount()}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              ก่อนหน้า
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              ถัดไป
-            </Button>
-          </div>
+      <div className="px-2 py-2">
+        <div className="text-sm text-muted-foreground">
+          แสดง {table.getFilteredRowModel().rows.length} รายการในหน้านี้
         </div>
       </div>
 
@@ -561,6 +531,7 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><span className="font-semibold">Asset Code:</span> {viewAsset.asset_code || '-'}</div>
+                <div><span className="font-semibold">รหัสพนักงาน:</span> {viewAsset.user_id || '-'}</div>
                 <div><span className="font-semibold">ผู้ใช้งาน:</span> {viewAsset.user_name || '-'}</div>
                 <div><span className="font-semibold">บริษัท:</span> {viewAsset.company || '-'}</div>
                 <div><span className="font-semibold">สาขา:</span> {viewAsset.site || '-'}</div>
@@ -582,12 +553,12 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
                 <div><span className="font-semibold">License 4:</span> {viewAsset.license4 || '-'}</div>
                 <div><span className="font-semibold">หมวดหมู่:</span> {viewAsset.category || '-'}</div>
                 <div><span className="font-semibold">ราคา:</span> {viewAsset.cost || '-'}</div>
-                <div><span className="font-semibold">วันที่ซื้อ:</span> {viewAsset.purchase_date || '-'}</div>
+                <div><span className="font-semibold">วันที่ซื้อ:</span> {formatDateThai(viewAsset.purchase_date)}</div>
                 <div><span className="font-semibold">Ref Device:</span> {viewAsset.ref_devicename || '-'}</div>
                 <div className="col-span-2 text-xs text-gray-500 border-t pt-2">
-                  <span className="font-semibold">สร้างเมื่อ:</span> {viewAsset.created_at ? new Date(viewAsset.created_at).toLocaleString('th-TH') : '-'}
+                  <span className="font-semibold">สร้างเมื่อ:</span> {formatDateTimeThai(viewAsset.created_at)}
                   {' | '}
-                  <span className="font-semibold">แก้ไขล่าสุด:</span> {viewAsset.updated_at ? new Date(viewAsset.updated_at).toLocaleString('th-TH') : '-'}
+                  <span className="font-semibold">แก้ไขล่าสุด:</span> {formatDateTimeThai(viewAsset.updated_at)}
                 </div>
               </div>
             </div>
@@ -602,6 +573,18 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
             <form onSubmit={async (e) => {
               e.preventDefault()
               const formData = new FormData(e.currentTarget)
+              
+              // แปลงวันที่จาก พ.ศ. (วว/ดด/ปปปป) เป็น ค.ศ. (YYYY-MM-DD)
+              const purchaseDateThai = formData.get('purchase_date') as string
+              let purchaseDateISO = ''
+              if (purchaseDateThai && purchaseDateThai.includes('/')) {
+                const [day, month, yearBE] = purchaseDateThai.split('/')
+                const yearAD = parseInt(yearBE) - 543
+                purchaseDateISO = `${yearAD}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+              } else {
+                purchaseDateISO = purchaseDateThai
+              }
+              
               const updatedAsset = {
                 asset_code: formData.get('asset_code') as string,
                 user_id: formData.get('user_id') as string,
@@ -625,12 +608,12 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
                 license4: formData.get('license4') as string,
                 category: formData.get('category') as string,
                 cost: formData.get('cost') as string,
-                purchase_date: formData.get('purchase_date') as string,
+                purchase_date: purchaseDateISO,
                 ref_devicename: formData.get('ref_devicename') as string,
               }
               
               try {
-                const response = await fetch(`/api/assets/${editAsset.id}`, {
+                const response = await fetch(`/repair/api/assets/${editAsset.id}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(updatedAsset)
@@ -777,8 +760,12 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
                     <Input name="cost" defaultValue={editAsset.cost} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">วันที่ซื้อ</label>
-                    <Input name="purchase_date" type="date" defaultValue={editAsset.purchase_date} />
+                    <label className="text-sm font-medium">วันที่ซื้อ (วว/ดด/ปปปป)</label>
+                    <Input 
+                      name="purchase_date" 
+                      type="date"
+                      defaultValue={formatDateThai(editAsset.purchase_date)} 
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Ref Device Name</label>

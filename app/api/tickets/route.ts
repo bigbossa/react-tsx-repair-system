@@ -26,11 +26,45 @@ function validateTicketPayload(data: any) {
   return { errors }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const result = await queryRepair(
-      'SELECT * FROM repairrequest ORDER BY created_at DESC'
-    )
+    const { searchParams } = new URL(request.url)
+    const site = searchParams.get('site')
+    const sites = searchParams.get('sites') // รองรับหลายสาขา คั่นด้วย comma
+    
+    let query = ''
+    const params: any[] = []
+    
+    // กรองตามหลายสาขา (sites) หรือ สาขาเดียว (site) - join กับ Assets เพื่อดึง site
+    if (sites) {
+      const siteList = sites.split(',').map(s => s.trim()).filter(s => s)
+      if (siteList.length > 0) {
+        const placeholders = siteList.map((_, i) => `$${i + 1}`).join(', ')
+        query = `
+          SELECT r.*, a.site 
+          FROM repairrequest r
+          LEFT JOIN public."Assets" a ON r.asset_id = a.asset_code
+          WHERE a.site IN (${placeholders})
+          ORDER BY r.created_at DESC
+        `
+        params.push(...siteList)
+      } else {
+        query = 'SELECT * FROM repairrequest ORDER BY created_at DESC'
+      }
+    } else if (site) {
+      query = `
+        SELECT r.*, a.site 
+        FROM repairrequest r
+        LEFT JOIN public."Assets" a ON r.asset_id = a.asset_code
+        WHERE a.site = $1
+        ORDER BY r.created_at DESC
+      `
+      params.push(site)
+    } else {
+      query = 'SELECT * FROM repairrequest ORDER BY created_at DESC'
+    }
+    
+    const result = await queryRepair(query, params)
     return NextResponse.json(result.rows)
   } catch (error) {
     console.error('Failed to fetch repair requests:', error)

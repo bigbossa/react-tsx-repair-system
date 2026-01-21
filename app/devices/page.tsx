@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/app/auth-context"
+import { apiFetch } from '@/lib/api'
+import { AppHeader } from '@/components/app-header'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -65,7 +67,7 @@ export default function DevicesPage() {
   const fetchDevices = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch("/api/devices")
+      const response = await apiFetch("/api/devices")
       if (response.ok) {
         const data = await response.json()
         setDevices(data)
@@ -107,7 +109,7 @@ export default function DevicesPage() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`/api/devices?id=${device.id}`, {
+        const response = await apiFetch(`/api/devices?id=${device.id}`, {
           method: "DELETE"
         })
 
@@ -169,43 +171,11 @@ export default function DevicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header Navigation */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push("/dashboard")}
-              className="shrink-0"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-            </Button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl lg:text-2xl font-bold truncate">จัดการอุปกรณ์เบิกจ่าย</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                Admin Dashboard
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            <Button variant="outline" onClick={handleLogout} className="gap-2">
-              <div className="text-right hidden sm:block">
-                <p className="font-medium text-sm">{user.username}</p>
-                <p className="text-xs text-muted-foreground">{user.name}</p>
-              </div>
-              <span className="text-sm sm:hidden">Logout</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader />
 
       {/* Main Content */}
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3 mb-6">
@@ -347,7 +317,7 @@ export default function DevicesPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
 
       {/* Device Dialog */}
       <DeviceDialog

@@ -6,6 +6,16 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const request_id = searchParams.get('request_id')
+    const withTechnician = searchParams.get('with_technician') === 'true'
+
+    // เพิ่ม column finish_with ถ้ายังไม่มี
+    try {
+      await queryRepair(`
+        ALTER TABLE feedback ADD COLUMN IF NOT EXISTS finish_with VARCHAR(255)
+      `)
+    } catch (e) {
+      // ignore if column already exists
+    }
     
     let result
     if (request_id) {
@@ -13,6 +23,17 @@ export async function GET(request: NextRequest) {
       result = await queryRepair(
         `SELECT * FROM feedback WHERE form_name = $1 ORDER BY created_at DESC`,
         [request_id]
+      )
+    } else if (withTechnician) {
+      // ดึงข้อมูล feedback พร้อม join กับ repairrequest เพื่อดึง finish_with (ถ้าไม่มีใน feedback)
+      result = await queryRepair(
+        `SELECT f.*, 
+                COALESCE(f.finish_with, r.finish_with) as finish_with, 
+                r.username as repair_username, 
+                r.device_name 
+         FROM feedback f
+         LEFT JOIN repairrequest r ON f.form_name = r.request_id
+         ORDER BY f.created_at DESC`
       )
     } else {
       // ดึงข้อมูลทั้งหมด
@@ -61,16 +82,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // บันทึก feedback
+    // ดึงข้อมูลผู้ซ่อม (finish_with) จาก ticket เพื่อบันทึกใน feedback
+    let finishWith = null
+    try {
+      const ticketData = await queryRepair(
+        `SELECT finish_with FROM repairrequest WHERE request_id = $1`,
+        [request_id]
+      )
+      if (ticketData.rows.length > 0) {
+        finishWith = ticketData.rows[0].finish_with
+      }
+    } catch (e) {
+      console.log('Could not get finish_with:', e)
+    }
+
+    // เพิ่ม column finish_with ใน feedback table ถ้ายังไม่มี
+    try {
+      await queryRepair(`
+        ALTER TABLE feedback ADD COLUMN IF NOT EXISTS finish_with VARCHAR(255)
+      `)
+    } catch (e) {
+      // ignore if column already exists
+    }
+
+    // บันทึก feedback พร้อม finish_with
     console.log('Inserting feedback to database...')
+    console.log('Finish With:', finishWith)
     
     // เก็บ request_id ใน form_name และ rating ใน form_status
     // ใช้ queryRepair เพราะตาราง feedback อยู่ใน database itsupport
     const result = await queryRepair(
-      `INSERT INTO feedback (form_name, form_status, form_description, is_active) 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO feedback (form_name, form_status, form_description, is_active, finish_with) 
+       VALUES ($1, $2, $3, $4, $5) 
        RETURNING *`,
-      [request_id, form_status, comment || null, true]
+      [request_id, form_status, comment || null, true, finishWith]
     )
     console.log('Feedback inserted successfully')
 

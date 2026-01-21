@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/bigboss/react-tsx-repair-system/react-tsx-repair-system/app/page.tsx"],"sourcesContent":["\"use client\"\n\nimport { useRouter } from \"next/navigation\"\nimport { useAuth } from \"./auth-context\"\nimport { useEffect } from \"react\"\n\nexport default function Home() {\n  const { user, isLoading } = useAuth()\n  const router = useRouter()\n\n  useEffect(() => {\n    // ถ้า login แล้วไป dashboard\n    if (user && !isLoading) {\n      router.push(\"/dashboard\")\n    } \n    // ถ้ายังไม่ login ไป /login\n    else if (!isLoading) {\n      router.push(\"/login\")\n    }\n  }, [user, isLoading, router])\n\n  return <div className=\"flex items-center justify-center min-h-screen\">Loading...</div>\n}\n"],"names":[],"mappings":";;;;;AAEA;AACA;AACA;AAJA;;;;;AAMe,SAAS;IACtB,MAAM,EAAE,IAAI,EAAE,SAAS,EAAE,GAAG,IAAA,kIAAO;IACnC,MAAM,SAAS,IAAA,+IAAS;IAExB,IAAA,kNAAS,EAAC;QACR,6BAA6B;QAC7B,IAAI,QAAQ,CAAC,WAAW;YACtB,OAAO,IAAI,CAAC;QACd,OAEK,IAAI,CAAC,WAAW;YACnB,OAAO,IAAI,CAAC;QACd;IACF,GAAG;QAAC;QAAM;QAAW;KAAO;IAE5B,qBAAO,8OAAC;QAAI,WAAU;kBAAgD;;;;;;AACxE"}}]
-}

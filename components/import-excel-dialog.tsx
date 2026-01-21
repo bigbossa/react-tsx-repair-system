@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { apiFetch } from '@/lib/api'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Loader2, Upload, FileSpreadsheet, CheckCircle2, XCircle } from 'lucide-react'
@@ -63,7 +64,7 @@ export function ImportExcelDialog({ open, onOpenChange, onSuccess }: ImportExcel
 
       // ดึงรายการ device_name ที่มีในระบบ
       console.log('🔍 กำลังตรวจสอบ device_name ที่มีในระบบ...')
-      const existingDevicesResponse = await fetch('/api/assets')
+      const existingDevicesResponse = await apiFetch('/api/assets')
       const existingDevicesResult = await existingDevicesResponse.json()
       const existingDeviceNames = new Set(
         (existingDevicesResult.data || [])
@@ -190,7 +191,7 @@ export function ImportExcelDialog({ open, onOpenChange, onSuccess }: ImportExcel
             asset_code: assetData.asset_code || 'N/A'
           })
 
-          const response = await fetch('/api/assets', {
+          const response = await apiFetch('/api/assets', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(assetData)

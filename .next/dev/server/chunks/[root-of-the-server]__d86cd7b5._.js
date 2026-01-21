@@ -383,24 +383,24 @@ async function GET(request) {
             params.push(`%${search}%`);
             paramCount++;
         }
-        if (company) {
-            query += ` AND company = $${paramCount}`;
+        if (company && company !== 'all') {
+            query += ` AND LOWER(company) = LOWER($${paramCount})`;
             params.push(company);
             paramCount++;
         }
-        if (department) {
-            query += ` AND department = $${paramCount}`;
+        if (department && department !== 'all') {
+            query += ` AND LOWER(department) = LOWER($${paramCount})`;
             params.push(department);
             paramCount++;
         }
-        if (site) {
-            query += ` AND site = $${paramCount}`;
+        if (site && site !== 'all') {
+            query += ` AND LOWER(site) = LOWER($${paramCount})`;
             params.push(site);
             paramCount++;
         }
         const category = searchParams.get('category');
-        if (category) {
-            query += ` AND category = $${paramCount}`;
+        if (category && category !== 'all') {
+            query += ` AND LOWER(category) = LOWER($${paramCount})`;
             params.push(category);
             paramCount++;
         }

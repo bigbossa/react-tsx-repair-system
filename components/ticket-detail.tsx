@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { apiFetch } from "@/lib/api"
 import type { Ticket, Asset } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,6 +12,7 @@ import { EditTicketDialog } from "./edit-ticket-dialog"
 import { FeedbackDialog } from "./feedback-dialog"
 import { Pencil, Eye } from "lucide-react"
 import Swal from "sweetalert2"
+import { formatDateThai, formatDateTimeThai } from "@/lib/utils"
 
 interface TicketDetailProps {
   ticket: any
@@ -65,7 +67,7 @@ export function TicketDetail({
   const checkExistingFeedback = async () => {
     setIsLoadingFeedback(true)
     try {
-      const response = await fetch(`/api/feedback?request_id=${ticket.request_id}`)
+      const response = await apiFetch(`/api/feedback?request_id=${ticket.request_id}`)
       
       if (response.ok) {
         const data = await response.json()
@@ -100,7 +102,8 @@ export function TicketDetail({
 
     setIsLoadingAsset(true)
     try {
-      const response = await fetch('/api/assets')
+      // ค้นหาโดยตรงด้วย asset_code หรือ device_name
+      const response = await apiFetch(`/api/assets?search=${encodeURIComponent(ticket.asset_id)}`)
       if (!response.ok) throw new Error('Failed to fetch assets')
       
       const result = await response.json()
@@ -162,7 +165,7 @@ export function TicketDetail({
 
     setIsSubmittingSurvey(true)
     try {
-      const response = await fetch('/api/feedback', {
+      const response = await apiFetch('/api/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -315,11 +318,7 @@ export function TicketDetail({
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase">วันที่แจ้ง</p>
             <p className="text-sm mt-1">
-              {ticket.created_at ? new Date(ticket.created_at).toLocaleDateString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              }) : '-'}
+              {formatDateThai(ticket.created_at, 'long')}
             </p>
           </div>
 
@@ -402,21 +401,30 @@ export function TicketDetail({
         {ticket.work && (
           <div className="border-t pt-3 sm:pt-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">ชนิดของงาน</p>
-            <p className="text-xs sm:text-sm font-medium text-indigo-700">{ticket.work}</p>
+            <p className="text-xs sm:text-sm font-medium text-indigo-700">[{ticket.work}]</p>
           </div>
         )}
 
         {ticket.detail_work && (
           <div className="border-t pt-3 sm:pt-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">รายละเอียดงาน</p>
-            <p className="text-xs sm:text-sm whitespace-pre-wrap break-words bg-purple-50 p-2 sm:p-3 rounded-md">{ticket.detail_work}</p>
+            <p className="text-xs sm:text-sm whitespace-pre-wrap break-words bg-purple-50 p-2 sm:p-3 rounded-md">
+              {(() => {
+                try {
+                  const details = JSON.parse(ticket.detail_work)
+                  return `บริษัท: ${details.company || '-'}, สาขา: ${details.branch || '-'}, อุปกรณ์: ${details.device || ticket.asset_id || '-'}`
+                } catch {
+                  return ticket.detail_work
+                }
+              })()}
+            </p>
           </div>
         )}
 
         {ticket.Ref && (
           <div className="border-t pt-3 sm:pt-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">อาการ/ปัญหาที่แจ้ง</p>
-            <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">{ticket.Ref}</p>
+            <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">[{ticket.Ref}]</p>
           </div>
         )}
 
@@ -534,11 +542,7 @@ export function TicketDetail({
           <div className="border-t pt-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">วันที่ซ่อมเสร็จ/ยกเลิก (finish_repair)</p>
             <p className="text-sm font-medium text-green-700">
-              {new Date(ticket.finish_repair).toLocaleDateString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+              {formatDateThai(ticket.finish_repair, 'long')}
             </p>
           </div>
         )}
@@ -584,13 +588,7 @@ export function TicketDetail({
                 {existingFeedback.created_at && (
                   <div>
                     <p className="text-xs text-gray-500">
-                      ประเมินเมื่อ: {new Date(existingFeedback.created_at).toLocaleString('th-TH', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      ประเมินเมื่อ: {formatDateTimeThai(existingFeedback.created_at)}
                     </p>
                   </div>
                 )}
@@ -610,13 +608,7 @@ export function TicketDetail({
           <div className="border-t pt-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">อัปเดตล่าสุด</p>
             <p className="text-sm">
-              {new Date(ticket.updated_at).toLocaleDateString('th-TH', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+              {formatDateTimeThai(ticket.updated_at)}
             </p>
           </div>
         )}
@@ -686,7 +678,7 @@ export function TicketDetail({
               </div>
 
               <div className="space-y-1 text-xs text-muted-foreground">
-                <p>ประเมินเมื่อ: {new Date(existingFeedback.created_at).toLocaleString('th-TH')}</p>
+                <p>ประเมินเมื่อ: {formatDateTimeThai(existingFeedback.created_at)}</p>
               </div>
 
               <Button
@@ -892,30 +884,39 @@ export function TicketDetail({
           <div className="py-4">
             {ticket.img && (
               <div className="flex justify-center items-center">
-                {ticket.img.toLowerCase().includes('.mp4') || 
-                 ticket.img.toLowerCase().includes('.mov') || 
-                 ticket.img.toLowerCase().includes('.webm') || 
-                 ticket.img.toLowerCase().includes('.avi') || 
-                 ticket.img.toLowerCase().includes('.mkv') || 
-                 ticket.img.startsWith('data:video/') ? (
-                  <video 
-                    src={ticket.img} 
-                    controls 
-                    preload="metadata"
-                    className="max-w-full max-h-[70vh] rounded-lg border"
-                  >
-                    <source src={ticket.img} type="video/mp4" />
-                    <source src={ticket.img} type="video/webm" />
-                    <source src={ticket.img} type="video/quicktime" />
-                    เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
-                  </video>
-                ) : (
-                  <img 
-                    src={ticket.img} 
-                    alt="Ticket media" 
-                    className="max-w-full max-h-[70vh] rounded-lg border object-contain"
-                  />
-                )}
+                {(() => {
+                  // เพิ่ม basePath ให้กับ path ที่ไม่ใช่ base64 หรือ data URL
+                  const imageSrc = ticket.img.startsWith('data:') || ticket.img.startsWith('http') 
+                    ? ticket.img 
+                    : ticket.img.startsWith('/repair/') 
+                      ? ticket.img 
+                      : `/repair${ticket.img.startsWith('/') ? ticket.img : '/' + ticket.img}`
+                  
+                  return ticket.img.toLowerCase().includes('.mp4') || 
+                   ticket.img.toLowerCase().includes('.mov') || 
+                   ticket.img.toLowerCase().includes('.webm') || 
+                   ticket.img.toLowerCase().includes('.avi') || 
+                   ticket.img.toLowerCase().includes('.mkv') || 
+                   ticket.img.startsWith('data:video/') ? (
+                    <video 
+                      src={imageSrc} 
+                      controls 
+                      preload="metadata"
+                      className="max-w-full max-h-[70vh] rounded-lg border"
+                    >
+                      <source src={imageSrc} type="video/mp4" />
+                      <source src={imageSrc} type="video/webm" />
+                      <source src={imageSrc} type="video/quicktime" />
+                      เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
+                    </video>
+                  ) : (
+                    <img 
+                      src={imageSrc} 
+                      alt="Ticket media" 
+                      className="max-w-full max-h-[70vh] rounded-lg border object-contain"
+                    />
+                  )
+                })()}
               </div>
             )}
           </div>

@@ -1,5 +1,6 @@
 export interface Ticket {
   id: string
+  request_id?: string
   title: string
   description: string
   category: "electrical" | "plumbing" | "hvac" | "appliance" | "other"
@@ -18,6 +19,10 @@ export interface Ticket {
   form_type?: string
   work?: string
   username?: string
+  site?: string
+  start_repair?: string
+  finish_repair?: string
+  finish_with?: string
 }
 
 export interface User {

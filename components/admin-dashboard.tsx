@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { apiFetch } from "@/lib/api"
 import type { Ticket } from "@/lib/types"
 import { TicketCard } from "./ticket-card"
 import { TicketDetail } from "./ticket-detail"
@@ -25,22 +26,73 @@ export function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
-  const [activeTab, setActiveTab] = useState<"active" | "completed">("active")
+  const [activeTab, setActiveTab] = useState<"pending" | "active" | "assessment" | "completed">("pending")
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [isCreatingTicket, setIsCreatingTicket] = useState(false)
   const [editingTicket, setEditingTicket] = useState<any>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [managedSites, setManagedSites] = useState<string[]>([])
 
   useEffect(() => {
-    fetchTickets()
-    checkExpiringLicenses()
-  }, [])
+    if (user) {
+      fetchManagedSites()
+      checkExpiringLicenses()
+    }
+  }, [user?.username])
+
+  // ดึงสาขาที่ admin รับผิดชอบ
+  const fetchManagedSites = async () => {
+    if (!user?.username) return
+    
+    try {
+      const response = await apiFetch(`/api/admin-sites?user_id=${encodeURIComponent(user.username)}`)
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        const sites = result.data.map((item: any) => item.site_code)
+        setManagedSites(sites)
+        // หลังจากได้ sites แล้ว ค่อย fetch tickets
+        fetchTicketsWithSites(sites)
+      } else {
+        // ถ้าไม่มีการกำหนดสาขา ให้ดึงทั้งหมด
+        fetchTicketsWithSites([])
+      }
+    } catch (error) {
+      console.error('Failed to fetch managed sites:', error)
+      fetchTicketsWithSites([])
+    }
+  }
+
+  const fetchTicketsWithSites = async (sites: string[]) => {
+    try {
+      let url = "/api/tickets"
+      
+      // ถ้ามีการกำหนดสาขาที่รับผิดชอบ ให้กรองตามสาขาเหล่านั้น
+      if (sites.length > 0) {
+        url += `?sites=${encodeURIComponent(sites.join(','))}`
+      }
+      
+      const response = await apiFetch(url)
+      const data = await response.json()
+      setTickets(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error("Failed to fetch tickets:", error)
+      setTickets([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Wrapper function สำหรับ refresh tickets
+  const fetchTickets = async () => {
+    await fetchTicketsWithSites(managedSites)
+  }
 
   const checkExpiringLicenses = async () => {
     try {
-      const response = await fetch('/api/subscriptions')
+      const response = await apiFetch('/api/subscriptions')
       if (!response.ok) return
 
       const subscriptions = await response.json()
@@ -57,23 +109,10 @@ export function AdminDashboard() {
     }
   }
 
-  const fetchTickets = async () => {
-    try {
-      const response = await fetch("/api/tickets")
-      const data = await response.json()
-      setTickets(Array.isArray(data) ? data : [])
-    } catch (error) {
-      console.error("Failed to fetch tickets:", error)
-      setTickets([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleCreateTicket = async (data: any) => {
     setIsCreatingTicket(true)
     try {
-      const response = await fetch("/api/tickets", {
+      const response = await apiFetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -163,7 +202,7 @@ export function AdminDashboard() {
         }
       }
 
-      const response = await fetch(`/api/tickets/${selectedTicket.request_id}`, {
+      const response = await apiFetch(`/api/tickets/${selectedTicket.request_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
@@ -436,12 +475,16 @@ export function AdminDashboard() {
                             finish_with: user?.name || user?.username || 'Admin'
                           }
                           
-                          const response = await fetch(`/api/tickets/${ticket.request_id}`, {
+                          console.log('Updating ticket:', ticket.request_id, updateData)
+                          
+                          const response = await apiFetch(`/api/tickets/${ticket.request_id}`, {
                             method: "PUT",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify(updateData),
                           })
 
+                          console.log('Response status:', response.status)
+                          
                           if (response.ok) {
                             await fetchTickets()
                             await Swal.fire({
@@ -452,13 +495,16 @@ export function AdminDashboard() {
                               showConfirmButton: false
                             })
                           } else {
-                            throw new Error('Failed to update')
+                            const errorData = await response.json()
+                            console.error('Update failed:', errorData)
+                            throw new Error(errorData.error || 'Failed to update')
                           }
                         } catch (error) {
+                          console.error('Error updating ticket:', error)
                           await Swal.fire({
                             icon: 'error',
                             title: 'เกิดข้อผิดพลาด',
-                            text: 'ไม่สามารถรับเรื่องได้',
+                            text: 'ไม่สามารถรับเรื่องได้: ' + (error instanceof Error ? error.message : 'Unknown error'),
                             confirmButtonText: 'ตกลง'
                           })
                         } finally {
@@ -501,7 +547,7 @@ export function AdminDashboard() {
                       if (result.isConfirmed) {
                         setIsUpdating(true)
                         try {
-                          const response = await fetch(`/api/tickets/${ticket.request_id}`, {
+                          const response = await apiFetch(`/api/tickets/${ticket.request_id}`, {
                             method: "PUT",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ Status: 3, cancel_whit: user?.username }),
@@ -551,7 +597,7 @@ export function AdminDashboard() {
                     รายละเอียดการซ่อม
                   </Button>
                   <Button
-                    size="sm"
+                    size="lx"
                     variant="default"
                     className="shadow-md"
                     onClick={(e) => {
@@ -582,7 +628,7 @@ export function AdminDashboard() {
                       if (result.isConfirmed) {
                         setIsUpdating(true)
                         try {
-                          const response = await fetch(`/api/tickets/${ticket.request_id}`, {
+                          const response = await apiFetch(`/api/tickets/${ticket.request_id}`, {
                             method: "PUT",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ Status: 3, cancel_whit: user?.username }),
@@ -671,7 +717,7 @@ export function AdminDashboard() {
                       variant={currentPage === page ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentPage(page)}
-                      className="min-w-[40px]"
+                      className="min-w-10"
                     >
                       {page}
                     </Button>

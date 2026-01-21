@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/app/auth-context"
+import { apiFetch } from '@/lib/api'
+import { AppHeader } from '@/components/app-header'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -10,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Plus, Pencil, Trash2, Bell, Calendar, Phone, Eye, RefreshCw } from "lucide-react"
+import { Plus, Pencil, Trash2, Bell, Calendar, Phone, Eye, RefreshCw } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import Swal from "sweetalert2"
 import flatpickr from "flatpickr"
@@ -99,7 +101,7 @@ export default function SubscriptionsPage() {
 
   const fetchSubscriptions = async () => {
     try {
-      const response = await fetch('/api/subscriptions')
+      const response = await apiFetch('/api/subscriptions')
       if (response.ok) {
         const data = await response.json()
         setSubscriptions(data)
@@ -113,7 +115,7 @@ export default function SubscriptionsPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('/api/company')
+      const response = await apiFetch('/api/company')
       if (response.ok) {
         const data = await response.json()
         // Map company data to dropdown format
@@ -273,7 +275,7 @@ export default function SubscriptionsPage() {
       
       const method = editingSubscription ? 'PUT' : 'POST'
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -401,7 +403,7 @@ export default function SubscriptionsPage() {
         newAlertDate.setDate(newAlertDate.getDate() - 20)
 
         try {
-          const response = await fetch(`/api/subscriptions?id=${subscription.id}`, {
+          const response = await apiFetch(`/api/subscriptions?id=${subscription.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -449,7 +451,7 @@ export default function SubscriptionsPage() {
     } else if (result.isDenied) {
       // ถ้าเลือกยังไม่ได้ต่ออายุ
       try {
-        const response = await fetch(`/api/subscriptions?id=${subscription.id}`, {
+        const response = await apiFetch(`/api/subscriptions?id=${subscription.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -502,7 +504,7 @@ export default function SubscriptionsPage() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`/api/subscriptions?id=${id}`, {
+        const response = await apiFetch(`/api/subscriptions?id=${id}`, {
           method: 'DELETE'
         })
 
@@ -572,39 +574,10 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => router.push('/dashboard')}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Bell className="h-6 w-6 text-blue-600" />
-                แจ้งเตือนค่า License
-              </h1>
-              <p className="text-sm text-muted-foreground">Admin Dashboard</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="font-medium text-sm">{user?.name || user?.username}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
-            </div>
-            <Button variant="outline" onClick={handleLogout}>
-              Logout
-            </Button>
-          </div>
-        </div>
-      </div>
+      <AppHeader />
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-xl font-semibold">รายการ License</h2>
@@ -721,7 +694,7 @@ export default function SubscriptionsPage() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </main>
 
       {/* Add/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

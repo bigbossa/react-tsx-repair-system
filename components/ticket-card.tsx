@@ -3,6 +3,7 @@
 import type { Ticket } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { formatDateThai } from "@/lib/utils"
 
 interface TicketCardProps {
   ticket: any
@@ -29,6 +30,19 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
   const status = ticket.Status ?? 0
   const formType = ticket.form_type || 'repair'
   
+  // Parse detail_work if available
+  const getWorkDetails = () => {
+    if (ticket.detail_work) {
+      try {
+        const details = JSON.parse(ticket.detail_work)
+        return `บริษัท: ${details.company || '-'}, สาขา: ${details.branch || '-'}, อุปกรณ์: ${details.device || ticket.asset_id || '-'}`
+      } catch {
+        return ticket.detail_work
+      }
+    }
+    return null
+  }
+  
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
@@ -40,7 +54,12 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
                 {formType === 'request' ? 'เบิกอุปกรณ์' : 'แจ้งซ่อม'}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">รหัสทรัพย์สิน: {ticket.asset_id || '-'}</p>
+            {ticket.work && (
+              <p className="text-sm text-indigo-700 font-medium mt-1">[{ticket.work}]</p>
+            )}
+            {getWorkDetails() && (
+              <p className="text-xs text-muted-foreground mt-1">{getWorkDetails()}</p>
+            )}
           </div>
           <Badge className={statusColors[status]}>{statusText[status]}</Badge>
         </div>
@@ -52,7 +71,7 @@ export function TicketCard({ ticket, onClick }: TicketCardProps) {
           </p>
           {ticket.created_at && (
             <p className="text-xs text-muted-foreground">
-              วันที่แจ้ง: {new Date(ticket.created_at).toLocaleDateString('th-TH')}
+              วันที่แจ้ง: {formatDateThai(ticket.created_at)}
             </p>
           )}
           {ticket.Rep_info && (

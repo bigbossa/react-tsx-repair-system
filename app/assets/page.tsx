@@ -12,11 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Search, Loader2, Monitor, Plus, FileUp, FileDown, ArrowLeft, Settings, Pencil, Trash2 } from 'lucide-react'
+import { Search, Loader2, Monitor, Plus, FileUp, FileDown, ArrowLeft, Settings, Pencil, Trash2, Copy, AlertTriangle, FileText } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { AddAssetDialog } from '@/components/add-asset-dialog'
 import { ImportExcelDialog } from '@/components/import-excel-dialog'
 import { AssetsDataTable } from '@/components/assets-data-table'
+import { AppHeader } from '@/components/app-header'
 
 export default function AssetsPage() {
   const router = useRouter()
@@ -46,13 +47,19 @@ export default function AssetsPage() {
   const [exportSiteFilter, setExportSiteFilter] = useState('all')
   const [allAssets, setAllAssets] = useState<Asset[]>([]) // เก็บข้อมูลทั้งหมดสำหรับการส่งออก
   const [loadingAllAssets, setLoadingAllAssets] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(50)
+  const [totalAssets, setTotalAssets] = useState(0)
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false)
+  const [duplicateAssets, setDuplicateAssets] = useState<{ asset_code: string; count: number; items: Asset[] }[]>([])
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false)
 
   const handleExportExcel = async (selectedSite: string = 'all') => {
     try {
       console.log('Starting export with site filter:', selectedSite)
       
       // ดึงข้อมูลทั้งหมดจาก API โดยไม่ผ่าน filter
-      const response = await fetch('/api/assets/export')
+      const response = await fetch('/repair/api/assets/export')
       console.log('Response status:', response.status)
       
       if (!response.ok) {
@@ -79,30 +86,31 @@ export default function AssetsPage() {
 
       // เลือกฟิลด์ทั้งหมดสำหรับ export ตาม Database Schema
       const exportData = filteredData.map((a: Asset) => ({
-        'Asset Code': a.asset_code || '',
-        'User ID': a.user_id || '',
-        'User Name': a.user_name || '',
-        'Company': a.company || '',
-        'Site': a.site || '',
-        'Department': a.department || '',
-        'Device Name': a.device_name || '',
-        'Brand': a.brand || '',
-        'CPU': a.cpu || '',
-        'Harddisk': a.harddisk || '',
-        'RAM': a.ram || '',
-        'IP Address': a.ip_address || '',
-        'MAC Address': a.mac_address || '',
-        'Serial Number': a.serial_number || '',
-        'Number': a.number || '',
-        'License OS': a.licenseOS || '',
-        'License MS': a.licenseMS || '',
-        'License 1': a.license1 || '',
-        'License 2': a.license2 || '',
-        'Category': a.category || '',
-        'Cost': a.cost || '',
-        'Purchase Date': a.purchase_date || '',
-        'Detail': a.Detail || '',
-        'Ref Device Name': a.ref_devicename || '',
+        'asset_code': a.asset_code || '',
+        'user_id': a.user_id || '',
+        'user_name': a.user_name || '',
+        'company': a.company || '',
+        'site': a.site || '',
+        'department': a.department || '',
+        'device_name': a.device_name || '',
+        'brand': a.brand || '',
+        'cpu': a.cpu || '',
+        'harddisk': a.harddisk || '',
+        'ram': a.ram || '',
+        'ip_address': a.ip_address || '',
+        'mac_address': a.mac_address || '',
+        'serial_number': a.serial_number || '',
+        'number': a.number || '',
+        'licenseOS': a.licenseos || a.licenseOS || '',
+        'licenseMS': a.licensems || a.licenseMS || '',
+        'license1': a.license1 || '',
+        'license2': a.license2 || '',
+        'license3': a.license3 || '',
+        'license4': a.license4 || '',
+        'category': a.category || '',
+        'cost': a.cost || '',
+        'purchase_date': a.purchase_date || '',
+        'ref_devicename': a.ref_devicename || '',
       }))
 
       const worksheet = XLSX.utils.json_to_sheet(exportData)
@@ -123,6 +131,196 @@ export default function AssetsPage() {
     }
   }
 
+  // ฟังก์ชันตรวจสอบ Asset Code ที่ซ้ำกัน
+  const checkDuplicateAssetCodes = async () => {
+    try {
+      setCheckingDuplicates(true)
+      
+      // ดึงข้อมูลทั้งหมด
+      const response = await fetch('/repair/api/assets/export')
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const result = await response.json()
+      if (!result.success || !result.data) {
+        alert('ไม่สามารถดึงข้อมูลได้')
+        return
+      }
+
+      // นับจำนวน Asset Code ที่ซ้ำกัน (ยกเว้น Monitor ที่สามารถซ้ำได้)
+      const assetCodeCount: Record<string, Asset[]> = {}
+      result.data.forEach((asset: Asset) => {
+        const code = asset.asset_code?.trim()
+        const category = (asset.category || '').toLowerCase()
+        
+        // ข้าม Monitor เพราะ Monitor สามารถซ้ำ Asset Code ได้
+        if (category === 'monitor' || category === 'จอ monitor' || category === 'จอmonitor') {
+          return
+        }
+        
+        if (code) {
+          if (!assetCodeCount[code]) {
+            assetCodeCount[code] = []
+          }
+          assetCodeCount[code].push(asset)
+        }
+      })
+
+      // หา Asset Code ที่ซ้ำกัน (มากกว่า 1)
+      const duplicates = Object.entries(assetCodeCount)
+        .filter(([_, items]) => items.length > 1)
+        .map(([asset_code, items]) => ({
+          asset_code,
+          count: items.length,
+          items
+        }))
+        .sort((a, b) => b.count - a.count) // เรียงตามจำนวนที่ซ้ำมากที่สุด
+
+      setDuplicateAssets(duplicates)
+      setShowDuplicateDialog(true)
+    } catch (error) {
+      console.error('Error checking duplicates:', error)
+      alert(`เกิดข้อผิดพลาด: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setCheckingDuplicates(false)
+    }
+  }
+
+  // ฟังก์ชัน Export PDF สำหรับข้อมูลที่ซ้ำกัน
+  const exportDuplicatesToPDF = () => {
+    if (duplicateAssets.length === 0) return
+
+    // สร้าง HTML content สำหรับ PDF
+    const timestamp = new Date().toLocaleDateString('th-TH', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    let htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>รายงาน Asset Code ที่ซ้ำกัน</title>
+        <style>
+          @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+          body { font-family: 'Sarabun', 'Tahoma', sans-serif; padding: 20px; font-size: 12px; }
+          .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #f97316; padding-bottom: 15px; }
+          .header h1 { color: #ea580c; margin: 0; font-size: 24px; }
+          .header p { color: #666; margin: 5px 0; }
+          .summary { background: #fff7ed; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fed7aa; }
+          .summary-row { display: flex; justify-content: space-between; margin: 5px 0; }
+          .asset-card { margin-bottom: 20px; border: 1px solid #fed7aa; border-radius: 8px; overflow: hidden; page-break-inside: avoid; }
+          .asset-header { background: linear-gradient(to right, #fff7ed, #ffedd5); padding: 12px 15px; border-bottom: 1px solid #fed7aa; display: flex; justify-content: space-between; align-items: center; }
+          .asset-code { font-size: 16px; font-weight: bold; color: #c2410c; }
+          .badge { background: #f97316; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; }
+          table { width: 100%; border-collapse: collapse; }
+          th { background: #f3f4f6; padding: 10px 8px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; font-size: 11px; }
+          td { padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 11px; }
+          tr:nth-child(even) { background: #fafafa; }
+          .footer { text-align: center; margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; color: #666; font-size: 10px; }
+          .note { background: #fef3c7; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b; font-size: 11px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🔍 รายงาน Asset Code ที่ซ้ำกัน</h1>
+          <p>วันที่ออกรายงาน: ${timestamp}</p>
+        </div>
+        
+        <div class="summary">
+          <div class="summary-row">
+            <span><strong>จำนวน Asset Code ที่ซ้ำ:</strong></span>
+            <span><strong>${duplicateAssets.length}</strong> รายการ</span>
+          </div>
+          <div class="summary-row">
+            <span><strong>จำนวนข้อมูลที่ซ้ำทั้งหมด:</strong></span>
+            <span><strong>${duplicateAssets.reduce((sum, d) => sum + d.count, 0)}</strong> รายการ</span>
+          </div>
+        </div>
+
+        <div class="note">
+          <strong>หมายเหตุ:</strong> หมวดหมู่ Monitor จะไม่ถูกนับรวม เนื่องจากสามารถใช้ Asset Code ร่วมกันได้
+        </div>
+    `
+
+    duplicateAssets.forEach((dup, idx) => {
+      htmlContent += `
+        <div class="asset-card">
+          <div class="asset-header">
+            <span class="asset-code">📋 ${dup.asset_code}</span>
+            <span class="badge">ซ้ำ ${dup.count} รายการ</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30px;">#</th>
+                <th>ผู้ใช้งาน</th>
+                <th>บริษัท</th>
+                <th>สาขา</th>
+                <th>แผนก</th>
+                <th>อุปกรณ์</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody>
+      `
+
+      dup.items.forEach((item, itemIdx) => {
+        htmlContent += `
+          <tr>
+            <td style="text-align: center;">${itemIdx + 1}</td>
+            <td>${item.user_name || '-'}</td>
+            <td>${item.company || '-'}</td>
+            <td>${item.site || '-'}</td>
+            <td>${item.department || '-'}</td>
+            <td>${item.device_name || '-'}</td>
+            <td><code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: monospace;">${item.ip_address || '-'}</code></td>
+          </tr>
+        `
+      })
+
+      htmlContent += `
+            </tbody>
+          </table>
+        </div>
+      `
+    })
+
+    htmlContent += `
+        <div class="footer">
+          <p>รายงานนี้สร้างจากระบบบำรุงรักษา | ระบบจัดการทรัพย์สิน (Assets Management)</p>
+        </div>
+      </body>
+      </html>
+    `
+
+    // เปิดหน้าต่างใหม่และพิมพ์
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(htmlContent)
+      printWindow.document.close()
+      
+      // รอให้โหลดเสร็จแล้วค่อยพิมพ์
+      printWindow.onload = () => {
+        printWindow.print()
+      }
+      
+      // Fallback สำหรับบาง browser
+      setTimeout(() => {
+        printWindow.print()
+      }, 500)
+    } else {
+      alert('ไม่สามารถเปิดหน้าต่างพิมพ์ได้ กรุณาอนุญาต popup')
+    }
+  }
+
   const fetchAssets = async () => {
     try {
       setLoading(true)
@@ -133,12 +331,33 @@ export default function AssetsPage() {
       if (filterSite !== 'all') params.append('site', filterSite)
       if (filterCategory !== 'all') params.append('category', filterCategory)
       if (filterDepartment !== 'all') params.append('department', filterDepartment)
+      params.append('page', page.toString())
+      params.append('pageSize', pageSize.toString())
       
-      const response = await fetch(`/api/assets?${params.toString()}`)
+      console.log('Fetching assets with filters:', {
+        search,
+        filterCompany,
+        filterSite,
+        filterCategory,
+        filterDepartment,
+        page,
+        pageSize,
+        params: params.toString()
+      })
+      
+      const response = await fetch(`/repair/api/assets?${params.toString()}`)
       const result = await response.json()
+      
+      console.log('Assets fetched:', {
+        success: result.success,
+        count: result.data?.length,
+        total: result.total,
+        sample: result.data?.slice(0, 3)
+      })
       
       if (result.success) {
         setAssets(result.data)
+        setTotalAssets(result.total || result.data.length)
       } else {
         setError(result.error || 'Failed to fetch assets')
       }
@@ -153,7 +372,8 @@ export default function AssetsPage() {
   const fetchAllAssets = async () => {
     try {
       setLoadingAllAssets(true)
-      const response = await fetch('/api/assets')
+      // ใช้ API export ที่ดึงข้อมูลทั้งหมดโดยไม่มี pagination
+      const response = await fetch('/repair/api/assets/export')
       const result = await response.json()
       if (result.success) {
         console.log('All assets loaded:', result.data.length)
@@ -175,8 +395,12 @@ export default function AssetsPage() {
   }
 
   useEffect(() => {
-    fetchAssets()
+    setPage(1) // Reset to page 1 when filters change
   }, [filterCompany, filterSite, filterCategory, filterDepartment])
+
+  useEffect(() => {
+    fetchAssets()
+  }, [page, filterCompany, filterSite, filterCategory, filterDepartment, search])
 
   useEffect(() => {
     fetchAllAssets()
@@ -184,7 +408,7 @@ export default function AssetsPage() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('/api/assets?distinct=department')
+      const response = await fetch('/repair/api/assets?distinct=department')
       const result = await response.json()
       if (result.success && Array.isArray(result.data)) {
         setDepartments(result.data)
@@ -197,7 +421,7 @@ export default function AssetsPage() {
   const fetchSites = async () => {
     try {
       setLoadingSites(true)
-      const response = await fetch('/api/sites')
+      const response = await fetch('/repair/api/sites')
       const result = await response.json()
       if (result.success && Array.isArray(result.data)) {
         setSites(result.data)
@@ -211,7 +435,7 @@ export default function AssetsPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/api/categories')
+      const response = await fetch('/repair/api/categories')
       const result = await response.json()
       if (result.success && Array.isArray(result.data)) {
         // เรียง ID จากน้อยไปมาก
@@ -225,7 +449,7 @@ export default function AssetsPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch('/api/company')
+      const response = await fetch('/repair/api/company')
       if (response.ok) {
         const data = await response.json()
         setCompanies(data)
@@ -254,32 +478,10 @@ export default function AssetsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">ระบบบำรุงรักษา</h1>
-              <p className="text-sm text-muted-foreground">Admin Dashboard</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="font-medium text-sm">{user?.name || user?.username}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
-            </div>
-            <Button variant="outline" onClick={handleLogout}>
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       {/* Main Content */}
-      <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -292,13 +494,41 @@ export default function AssetsPage() {
                   ข้อมูลทรัพย์สินจากฐานข้อมูล Assets - ทั้งหมด {assets.length} รายการ
                 </CardDescription>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button variant="ghost" size="icon" title="ตั้งค่า" onClick={() => setShowSettingsDialog(true)}>
                   <Settings className="h-5 w-5" />
+                </Button>
+                <Button 
+                  onClick={checkDuplicateAssetCodes} 
+                  variant="outline" 
+                  className="gap-2 bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200"
+                  disabled={checkingDuplicates}
+                >
+                  {checkingDuplicates ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                  เช็คซ้ำ
                 </Button>
                 <Button onClick={() => setShowAddDialog(true)} className="gap-2">
                   <Plus className="h-4 w-4" />
                   เพิ่มข้อมูล
+                </Button>
+                <Button 
+                  onClick={() => {
+                    const link = document.createElement('a')
+                    link.href = '/repair/Frome-Req.xlsx'
+                    link.download = 'Template_Assets.xlsx'
+                    document.body.appendChild(link)
+                    link.click()
+                    document.body.removeChild(link)
+                  }} 
+                  variant="outline" 
+                  className="gap-2 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                >
+                  <FileDown className="h-4 w-4" />
+                  Template
                 </Button>
                 <Button onClick={() => setShowImportDialog(true)} variant="outline" className="gap-2">
                   <FileUp className="h-4 w-4" />
@@ -325,21 +555,74 @@ export default function AssetsPage() {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <AssetsDataTable 
-              data={assets} 
-              filterCompany={filterCompany}
-              filterSite={filterSite}
-              filterCategory={filterCategory}
-              filterDepartment={filterDepartment}
-              departments={departments}
-              sites={sites}
-              categories={categories}
-              companies={companies}
-              onFilterCompanyChange={setFilterCompany}
-              onFilterSiteChange={setFilterSite}
-              onFilterCategoryChange={setFilterCategory}
-              onFilterDepartmentChange={setFilterDepartment}
-            />
+            <>
+              <AssetsDataTable 
+                data={assets} 
+                filterCompany={filterCompany}
+                filterSite={filterSite}
+                filterCategory={filterCategory}
+                filterDepartment={filterDepartment}
+                search={search}
+                departments={departments}
+                sites={sites}
+                categories={categories}
+                companies={companies}
+                onFilterCompanyChange={setFilterCompany}
+                onFilterSiteChange={setFilterSite}
+                onFilterCategoryChange={setFilterCategory}
+                onFilterDepartmentChange={setFilterDepartment}
+                onSearchChange={setSearch}
+              />
+              
+              {/* Pagination */}
+              <div className="flex items-center justify-between mt-6 pt-4 border-t flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-muted-foreground">
+                    แสดง {pageSize === totalAssets ? 'ทั้งหมด' : `${((page - 1) * pageSize) + 1} - ${Math.min(page * pageSize, totalAssets)}`} จาก {totalAssets} รายการ
+                  </p>
+                  <Select
+                    value={pageSize.toString()}
+                    onValueChange={(value) => {
+                      const newSize = value === 'all' ? totalAssets : parseInt(value)
+                      setPageSize(newSize)
+                      setPage(1)
+                    }}
+                  >
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="50">50 รายการ</SelectItem>
+                      <SelectItem value="100">100 รายการ</SelectItem>
+                      <SelectItem value="200">200 รายการ</SelectItem>
+                      <SelectItem value="500">500 รายการ</SelectItem>
+                      <SelectItem value="all">แสดงทั้งหมด</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1 || pageSize >= totalAssets}
+                  >
+                    ก่อนหน้า
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">หน้า {pageSize >= totalAssets ? '1 / 1' : `${page} / ${Math.ceil(totalAssets / pageSize)}`}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={page >= Math.ceil(totalAssets / pageSize) || pageSize >= totalAssets}
+                  >
+                    ถัดไป
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -417,7 +700,7 @@ export default function AssetsPage() {
                                 if (!confirm(`ต้องการลบประเภท "${category.category}" หรือไม่?`)) return
                                 
                                 try {
-                                  const response = await fetch(`/api/categories/${category.id}`, {
+                                  const response = await fetch(`/repair/api/categories/${category.id}`, {
                                     method: 'DELETE'
                                   })
                                   const result = await response.json()
@@ -482,7 +765,7 @@ export default function AssetsPage() {
             try {
               if (editingSite) {
                 // แก้ไขสาขา - ใช้รหัสสาขาเก่าเป็น URL parameter
-                const response = await fetch(`/api/sites/${editingSite.site_code}`, {
+                const response = await fetch(`/repair/api/sites/${editingSite.site_code}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ 
@@ -503,7 +786,7 @@ export default function AssetsPage() {
                 }
               } else {
                 // เพิ่มสาขาใหม่
-                const response = await fetch('/api/sites', {
+                const response = await fetch('/repair/api/sites', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ site_code: siteCode, site: siteName })
@@ -582,8 +865,8 @@ export default function AssetsPage() {
 
             try {
               const url = editingCategory 
-                ? `/api/categories/${editingCategory.id}`
-                : '/api/categories'
+                ? `/repair/api/categories/${editingCategory.id}`
+                : '/repair/api/categories'
               
               const response = await fetch(url, {
                 method: editingCategory ? 'PUT' : 'POST',
@@ -698,7 +981,7 @@ export default function AssetsPage() {
                   </p>
                 </div>
 
-                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                {/* <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                   <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
                     ข้อมูลที่จะส่งออก
                   </h4>
@@ -708,7 +991,7 @@ export default function AssetsPage() {
                     <li>• ข้อมูลเครือข่าย (IP, MAC Address)</li>
                     <li>• License และข้อมูลการจัดซื้อ</li>
                   </ul>
-                </div>
+                </div> */}
               </>
             )}
           </div>
@@ -732,6 +1015,136 @@ export default function AssetsPage() {
               <FileDown className="h-4 w-4" />
               ส่งออก Excel
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Duplicate Asset Code Dialog */}
+      <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <DialogContent className="max-w-6xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              <div className={`h-10 w-10 rounded-full flex items-center justify-center ${duplicateAssets.length > 0 ? 'bg-orange-100' : 'bg-green-100'}`}>
+                {duplicateAssets.length > 0 ? (
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                ) : (
+                  <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <span>ผลการตรวจสอบ Asset Code ซ้ำ</span>
+                <p className="text-sm font-normal text-muted-foreground mt-1">
+                  {duplicateAssets.length > 0 
+                    ? `พบ ${duplicateAssets.length} Asset Code ที่มีข้อมูลซ้ำกัน (รวม ${duplicateAssets.reduce((sum, d) => sum + d.count, 0)} รายการ)`
+                    : 'ไม่พบ Asset Code ที่ซ้ำกัน ✓'}
+                </p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto py-4">
+            {duplicateAssets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-green-600">
+                <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-lg">
+                  <svg className="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-2xl font-semibold">ไม่พบ Asset Code ซ้ำ!</p>
+                <p className="text-base text-muted-foreground mt-2">ข้อมูลทั้งหมดไม่มี Asset Code ที่ซ้ำกัน</p>
+                <p className="text-sm text-muted-foreground mt-1">* หมวดหมู่ Monitor จะไม่ถูกนับรวม</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground mb-2">* หมวดหมู่ Monitor จะไม่ถูกนับรวม เนื่องจากสามารถใช้ Asset Code ร่วมกันได้</p>
+                {duplicateAssets.map((dup, idx) => (
+                  <Card key={idx} className="border-orange-200 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="py-3 px-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-t-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-orange-200 flex items-center justify-center">
+                            <Copy className="h-4 w-4 text-orange-600" />
+                          </div>
+                          <CardTitle className="text-lg font-semibold text-orange-800">
+                            {dup.asset_code}
+                          </CardTitle>
+                        </div>
+                        <Badge className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1">
+                          ซ้ำ {dup.count} รายการ
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-gray-50">
+                              <TableHead className="w-[50px] text-center font-semibold">#</TableHead>
+                              <TableHead className="font-semibold min-w-[120px]">ผู้ใช้งาน</TableHead>
+                              <TableHead className="font-semibold min-w-[80px]">บริษัท</TableHead>
+                              <TableHead className="font-semibold min-w-[80px]">สาขา</TableHead>
+                              <TableHead className="font-semibold min-w-[100px]">แผนก</TableHead>
+                              <TableHead className="font-semibold min-w-[120px]">อุปกรณ์</TableHead>
+                              <TableHead className="font-semibold min-w-[120px]">IP Address</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {dup.items.map((item, itemIdx) => (
+                              <TableRow key={itemIdx} className="hover:bg-orange-50/50">
+                                <TableCell className="text-center font-medium">{itemIdx + 1}</TableCell>
+                                <TableCell className="font-medium">{item.user_name || '-'}</TableCell>
+                                <TableCell>{item.company || '-'}</TableCell>
+                                <TableCell>{item.site || '-'}</TableCell>
+                                <TableCell>{item.department || '-'}</TableCell>
+                                <TableCell>
+                                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-sm">
+                                    {item.device_name || '-'}
+                                  </span>
+                                </TableCell>
+                                <TableCell>
+                                  <code className="px-2 py-1 rounded bg-gray-100 text-sm font-mono">
+                                    {item.ip_address || '-'}
+                                  </code>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center pt-4 border-t">
+            <div className="text-sm text-muted-foreground">
+              {duplicateAssets.length > 0 && (
+                <span className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  กรุณาตรวจสอบและแก้ไขข้อมูลที่ซ้ำกัน
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {duplicateAssets.length > 0 && (
+                <Button 
+                  onClick={() => exportDuplicatesToPDF()} 
+                  variant="outline" 
+                  size="lg" 
+                  className="px-6 gap-2 bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+                >
+                  <FileText className="h-4 w-4" />
+                  Export PDF
+                </Button>
+              )}
+              <Button onClick={() => setShowDuplicateDialog(false)} size="lg" className="px-8">
+                ปิด
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

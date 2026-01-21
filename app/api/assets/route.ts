@@ -193,6 +193,8 @@ export async function GET(request: NextRequest) {
     const site = searchParams.get('site')
     const userId = searchParams.get('user_id')
     const userName = searchParams.get('user_name')
+    const page = parseInt(searchParams.get('page') || '1')
+    const pageSize = parseInt(searchParams.get('pageSize') || '50')
 
     // Return distinct departments list when requested
     if (distinct === 'department') {
@@ -258,39 +260,51 @@ export async function GET(request: NextRequest) {
       paramCount++
     }
 
-    if (company) {
-      query += ` AND company = $${paramCount}`
+    if (company && company !== 'all') {
+      query += ` AND LOWER(company) = LOWER($${paramCount})`
       params.push(company)
       paramCount++
     }
 
-    if (department) {
-      query += ` AND department = $${paramCount}`
+    if (department && department !== 'all') {
+      query += ` AND LOWER(department) = LOWER($${paramCount})`
       params.push(department)
       paramCount++
     }
 
-    if (site) {
-      query += ` AND site = $${paramCount}`
+    if (site && site !== 'all') {
+      query += ` AND LOWER(site) = LOWER($${paramCount})`
       params.push(site)
       paramCount++
     }
 
     const category = searchParams.get('category')
-    if (category) {
-      query += ` AND category = $${paramCount}`
+    if (category && category !== 'all') {
+      query += ` AND LOWER(category) = LOWER($${paramCount})`
       params.push(category)
       paramCount++
     }
 
-    query += ' ORDER BY asset_code'
+    // Count total for pagination
+    const countQuery = query.replace(/SELECT[\s\S]+?FROM/, 'SELECT COUNT(*) FROM')
+    const countResult = await queryRepair(countQuery, params)
+    const total = parseInt(countResult.rows[0].count)
+
+    // Add pagination
+    const offset = (page - 1) * pageSize
+    query += ` ORDER BY asset_code LIMIT $${paramCount} OFFSET $${paramCount + 1}`
+    params.push(pageSize, offset)
 
     const result = await queryRepair(query, params)
 
     return NextResponse.json({
       success: true,
       data: result.rows,
-      count: result.rows.length
+      count: result.rows.length,
+      total: total,
+      page: page,
+      pageSize: pageSize,
+      totalPages: Math.ceil(total / pageSize)
     })
   } catch (error) {
     console.error('Error fetching assets:', error)

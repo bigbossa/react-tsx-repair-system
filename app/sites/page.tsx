@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/auth-context";
+import { apiFetch } from '@/lib/api';
+import { AppHeader } from '@/components/app-header';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CompanyDialog } from "@/components/company-dialog";
 import {
-  ArrowLeft,
   Plus,
   Pencil,
   Trash2,
@@ -96,7 +97,7 @@ export default function SitesPage() {
 
   const fetchSites = async () => {
     try {
-      const response = await fetch("/api/sites");
+      const response = await apiFetch("/api/sites");
       const data = await response.json();
       if (data.success) {
         setSites(data.data);
@@ -116,7 +117,7 @@ export default function SitesPage() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await fetch("/api/company");
+      const response = await apiFetch("/api/company");
       if (response.ok) {
         const data = await response.json();
         setCompanies(data);
@@ -150,7 +151,7 @@ export default function SitesPage() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`/api/company?id=${company.id}`, {
+        const response = await apiFetch(`/api/company?id=${company.id}`, {
           method: "DELETE",
         });
 
@@ -224,7 +225,7 @@ export default function SitesPage() {
 
     if (formValues) {
       try {
-        const response = await fetch("/api/sites", {
+        const response = await apiFetch("/api/sites", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -298,7 +299,7 @@ export default function SitesPage() {
 
     if (formValues) {
       try {
-        const response = await fetch(`/api/sites/${site.site_code}`, {
+        const response = await apiFetch(`/api/sites/${site.site_code}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -347,7 +348,7 @@ export default function SitesPage() {
 
     if (result.isConfirmed) {
       try {
-        const response = await fetch(`/api/sites/${site.site_code}`, {
+        const response = await apiFetch(`/api/sites/${site.site_code}`, {
           method: "DELETE",
         });
 
@@ -398,45 +399,11 @@ export default function SitesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header Navbar */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push("/dashboard")}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl lg:text-2xl font-bold truncate">
-                ตั้งค่าระบบ
-              </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
-                Admin Dashboard
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            <Button variant="outline" onClick={handleLogout} className="gap-2">
-              <div className="text-right hidden sm:block">
-                <p className="font-medium text-sm">
-                  {user?.name || user?.username}
-                </p>
-                <p className="text-xs text-muted-foreground capitalize">
-                  {user?.role}
-                </p>
-              </div>
-              <span className="text-sm sm:hidden">Logout</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50">
+      <AppHeader />
 
       {/* Main Content */}
-      <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
         <Tabs defaultValue="sites" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="sites">จัดการสาขา</TabsTrigger>
@@ -671,7 +638,7 @@ export default function SitesPage() {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
 
       {/* Company Dialog */}
       <CompanyDialog

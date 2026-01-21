@@ -23,7 +23,7 @@ export async function authenticateUser(username: string, password: string) {
     
     // Map database user to application format
     const userData = {
-      id: user.iduser?.toString() || user.userid?.toString() || '1',
+      id: user.userid?.toString() || user.iduser?.toString() || '1',
       username: user.user_login,
       email: `${user.user_login}@system.local`,
       role: (user.Role === 0) ? 'admin' : 'user',
@@ -56,7 +56,7 @@ export async function getUserByUsername(username: string) {
     const user = result.rows[0]
     
     return {
-      id: user.iduser?.toString() || user.userid?.toString() || '1',
+      id: user.userid?.toString() || user.iduser?.toString() || '1',
       username: user.user_login,
       email: `${user.user_login}@system.local`,
       role: (user.Role === 0) ? 'admin' : 'user',

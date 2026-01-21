@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/app/auth-context"
+import { apiFetch } from '@/lib/api'
 import { AdminDashboard } from "@/components/admin-dashboard"
 import { UserDashboard } from "@/components/user-dashboard"
 import { Button } from "@/components/ui/button"
@@ -9,7 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Menu, Monitor, Users, BarChart3, ChevronDown, Key } from "lucide-react"
+import { Menu, Monitor, Users, BarChart3, ChevronDown, Key, Home } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import Swal from "sweetalert2"
 
@@ -40,7 +41,7 @@ export default function Dashboard() {
       if (hasShownLicenseAlert.current) return
       
       try {
-        const response = await fetch('/api/subscriptions')
+        const response = await apiFetch('/api/subscriptions')
         if (!response.ok) return
 
         const subscriptions = await response.json()
@@ -121,7 +122,7 @@ export default function Dashboard() {
         if (result.isConfirmed) {
           try {
             // อัปเดตสถานะเป็น "กำลังดำเนินการ" (status = 1)
-            const response = await fetch(`/api/tickets/${ticketId}`, {
+            const response = await apiFetch(`/api/tickets/${ticketId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: '1' })
@@ -169,7 +170,7 @@ export default function Dashboard() {
         if (result.isConfirmed) {
           try {
             // อัปเดตสถานะเป็น "รอการประเมิน" (status = 4)
-            const response = await fetch(`/api/tickets/${ticketId}`, {
+            const response = await apiFetch(`/api/tickets/${ticketId}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: '4' })
@@ -240,7 +241,7 @@ export default function Dashboard() {
 
     setIsChangingPassword(true)
     try {
-      const response = await fetch('/api/users/change-password', {
+      const response = await apiFetch('/api/users/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -311,11 +312,28 @@ export default function Dashboard() {
                       เมนูผู้ดูแลระบบ
                     </div>
                     <DropdownMenuItem 
+                      onClick={() => router.push('/dashboard')}
+                      className="cursor-pointer py-3 px-3 hover:bg-gray-50 focus:bg-gray-50"
+                    >
+                      <Home className="h-5 w-5 mr-3 text-gray-600" />
+                      <span className="text-base">หน้าแรก</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
                       onClick={() => router.push('/assets')}
                       className="cursor-pointer py-3 px-3 hover:bg-blue-50 focus:bg-blue-50"
                     >
                       <Monitor className="h-5 w-5 mr-3 text-blue-600" />
                       <span className="text-base">จัดการทรัพย์สิน</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => router.push('/duplicate-assets')}
+                      className="cursor-pointer py-3 px-3 hover:bg-orange-50 focus:bg-orange-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                      <span className="text-base">ทรัพย์สินที่ซ้ำ</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => router.push('/users')}
@@ -324,6 +342,16 @@ export default function Dashboard() {
                       <Users className="h-5 w-5 mr-3 text-green-600" />
                       <span className="text-base">จัดการผู้ใช้</span>
                     </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => router.push('/admin-permissions')}
+                      className="cursor-pointer py-3 px-3 hover:bg-cyan-50 focus:bg-cyan-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-cyan-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                      </svg>
+                      <span className="text-base">สิทธิ์ Admin</span>
+                    </DropdownMenuItem>
+                    
                     <DropdownMenuItem 
                       onClick={() => router.push('/devices')}
                       className="cursor-pointer py-3 px-3 hover:bg-orange-50 focus:bg-orange-50"
@@ -369,6 +397,16 @@ export default function Dashboard() {
                         <polyline points="9 22 9 12 15 12 15 22"></polyline>
                       </svg>
                       <span className="text-base">ตั้งค่าระบบ</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => router.push('/checklist')}
+                      className="cursor-pointer py-3 px-3 hover:bg-pink-50 focus:bg-pink-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-pink-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      </svg>
+                      <span className="text-base">MA Checklist</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem 
                       onClick={() => router.push('/report')}

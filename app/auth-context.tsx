@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
+import { apiFetch } from "@/lib/api"
 import type { User } from "@/lib/types"
 
 interface AuthContextType {
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (username: string, password: string) => {
     // Simulate API call
-    const response = await fetch("/api/auth/login", {
+    const response = await apiFetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),

@@ -166,7 +166,11 @@ module.exports = mod;
     "notifyNewRepairRequest",
     ()=>notifyNewRepairRequest,
     "notifyStatusChange",
-    ()=>notifyStatusChange
+    ()=>notifyStatusChange,
+    "sendMaintenanceFeedbackLink",
+    ()=>sendMaintenanceFeedbackLink,
+    "sendPushMessage",
+    ()=>sendPushMessage
 ]);
 const LINE_MESSAGING_API = 'https://api.line.me/v2/bot/message';
 /**
@@ -261,12 +265,7 @@ const LINE_MESSAGING_API = 'https://api.line.me/v2/bot/message';
         contents
     };
 }
-/**
- * ส่งข้อความผ่าน LINE Official Account (Push Message)
- * @param to - User ID หรือ Group ID ที่จะส่ง
- * @param messages - Array ของข้อความที่จะส่ง
- * @returns Promise<boolean> - สำเร็จหรือไม่
- */ async function sendPushMessage(to, messages) {
+async function sendPushMessage(to, messages) {
     const channelAccessToken = process.env.LINE_CHANNEL_ACCESS_TOKEN;
     if (!channelAccessToken) {
         console.warn('LINE_CHANNEL_ACCESS_TOKEN is not configured');
@@ -502,6 +501,256 @@ async function notifyStatusChange(ticket) {
         ]);
     } else {
         // ส่งแบบ Broadcast
+        return sendBroadcastMessage([
+            flexMessage
+        ]);
+    }
+}
+async function sendMaintenanceFeedbackLink(params) {
+    const dateStr = new Date().toLocaleString('th-TH', {
+        timeZone: 'Asia/Bangkok',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    // สร้าง Flex Message แบบสวยงามสำหรับแบบประเมิน
+    const flexMessage = {
+        type: 'flex',
+        altText: `✅ การบำรุงรักษา ${params.asset_code} เสร็จสิ้น - กรุณาประเมินความพึงพอใจ`,
+        contents: {
+            type: 'bubble',
+            hero: {
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                    {
+                        type: 'text',
+                        text: '✅ MA เสร็จสิ้น',
+                        color: '#ffffff',
+                        size: 'xl',
+                        weight: 'bold',
+                        align: 'center'
+                    },
+                    {
+                        type: 'text',
+                        text: 'ขอความคิดเห็นจากท่าน',
+                        color: '#ffffff',
+                        size: 'sm',
+                        align: 'center',
+                        margin: 'sm'
+                    }
+                ],
+                backgroundColor: '#06C755',
+                paddingAll: '20px'
+            },
+            body: {
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                    {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: 'การบำรุงรักษาอุปกรณ์ของท่านเสร็จสิ้นแล้ว',
+                                size: 'md',
+                                color: '#111111',
+                                wrap: true,
+                                weight: 'bold'
+                            }
+                        ],
+                        margin: 'none'
+                    },
+                    {
+                        type: 'separator',
+                        margin: 'lg'
+                    },
+                    {
+                        type: 'box',
+                        layout: 'vertical',
+                        margin: 'lg',
+                        spacing: 'sm',
+                        contents: [
+                            {
+                                type: 'box',
+                                layout: 'baseline',
+                                spacing: 'sm',
+                                contents: [
+                                    {
+                                        type: 'text',
+                                        text: '🖥️ อุปกรณ์:',
+                                        color: '#666666',
+                                        size: 'sm',
+                                        flex: 2
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: params.device_name,
+                                        wrap: true,
+                                        color: '#111111',
+                                        size: 'sm',
+                                        flex: 3,
+                                        weight: 'bold'
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'box',
+                                layout: 'baseline',
+                                spacing: 'sm',
+                                contents: [
+                                    {
+                                        type: 'text',
+                                        text: '🏷️ รหัสทรัพย์สิน:',
+                                        color: '#666666',
+                                        size: 'sm',
+                                        flex: 2
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: params.asset_code,
+                                        wrap: true,
+                                        color: '#111111',
+                                        size: 'sm',
+                                        flex: 3,
+                                        weight: 'bold'
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'box',
+                                layout: 'baseline',
+                                spacing: 'sm',
+                                contents: [
+                                    {
+                                        type: 'text',
+                                        text: '👤 เจ้าของ:',
+                                        color: '#666666',
+                                        size: 'sm',
+                                        flex: 2
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: params.user_name,
+                                        wrap: true,
+                                        color: '#111111',
+                                        size: 'sm',
+                                        flex: 3
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'box',
+                                layout: 'baseline',
+                                spacing: 'sm',
+                                contents: [
+                                    {
+                                        type: 'text',
+                                        text: '🔧 ผู้ดำเนินการ:',
+                                        color: '#666666',
+                                        size: 'sm',
+                                        flex: 2
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: params.checked_by,
+                                        wrap: true,
+                                        color: '#111111',
+                                        size: 'sm',
+                                        flex: 3
+                                    }
+                                ]
+                            },
+                            {
+                                type: 'box',
+                                layout: 'baseline',
+                                spacing: 'sm',
+                                contents: [
+                                    {
+                                        type: 'text',
+                                        text: '📅 วันเวลา:',
+                                        color: '#666666',
+                                        size: 'sm',
+                                        flex: 2
+                                    },
+                                    {
+                                        type: 'text',
+                                        text: dateStr,
+                                        wrap: true,
+                                        color: '#111111',
+                                        size: 'sm',
+                                        flex: 3
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: '⭐ กรุณาประเมินความพึงพอใจ',
+                                size: 'sm',
+                                color: '#06C755',
+                                weight: 'bold',
+                                align: 'center'
+                            }
+                        ],
+                        margin: 'lg',
+                        paddingAll: '10px',
+                        backgroundColor: '#E8F5E9',
+                        cornerRadius: '10px'
+                    }
+                ]
+            },
+            footer: {
+                type: 'box',
+                layout: 'vertical',
+                spacing: 'sm',
+                contents: [
+                    {
+                        type: 'button',
+                        style: 'primary',
+                        height: 'sm',
+                        action: {
+                            type: 'uri',
+                            label: '📋 ประเมินความพึงพอใจ',
+                            uri: params.feedbackUrl
+                        },
+                        color: '#06C755'
+                    },
+                    {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [
+                            {
+                                type: 'text',
+                                text: 'ความคิดเห็นของท่านมีความสำคัญต่อเรา',
+                                size: 'xxs',
+                                color: '#999999',
+                                align: 'center'
+                            }
+                        ],
+                        margin: 'sm'
+                    }
+                ],
+                flex: 0
+            }
+        }
+    };
+    // ส่งถึงเจ้าของเครื่อง
+    if (params.lineUserId) {
+        return sendPushMessage(params.lineUserId, [
+            flexMessage
+        ]);
+    } else {
+        // ถ้าไม่มี LINE User ID ให้ส่งแบบ broadcast (สำหรับทดสอบ)
+        console.warn('No LINE User ID provided, sending as broadcast');
         return sendBroadcastMessage([
             flexMessage
         ]);

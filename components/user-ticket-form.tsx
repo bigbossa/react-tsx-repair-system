@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -66,7 +67,8 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
   React.useEffect(() => {
     const fetchAllAssets = async () => {
       try {
-        const response = await fetch('/api/assets')
+        // ดึงข้อมูลทั้งหมดสำหรับการค้นหา
+        const response = await apiFetch('/api/assets?pageSize=10000')
         if (response.ok) {
           const result = await response.json()
           const assets = result.data || result
@@ -100,7 +102,8 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
       console.log('Starting to fetch assets...')
       
       try {
-        const response = await fetch('/api/assets')
+        // ดึงข้อมูลทั้งหมดโดยใช้ pageSize ที่มากพอ
+        const response = await apiFetch('/api/assets?pageSize=10000')
         if (response.ok) {
           const result = await response.json()
           const assets = result.data || result
@@ -177,7 +180,7 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
         const formData = new FormData()
         formData.append('file', file)
         
-        const response = await fetch('/api/upload', {
+        const response = await apiFetch('/api/upload', {
           method: 'POST',
           body: formData,
         })
@@ -754,7 +757,7 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
               )}
 
               {/* Cost Management Section */}
-              <div className="space-y-4 border-t pt-4">
+              {/* <div className="space-y-4 border-t pt-4">
                 <div className="space-y-3">
                   <label className="text-sm font-medium">มีค่าใช้จ่ายหรือไม่</label>
                   <div className="flex gap-4">
@@ -876,7 +879,7 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
                     )}
                   </div>
                 )}
-              </div>
+              </div> */}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "กำลังส่งคำขอ..." : formType === "repair" ? "ส่งคำขอซ่อม" : "ส่งคำขอเบิก"}

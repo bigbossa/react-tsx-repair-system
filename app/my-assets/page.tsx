@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/app/auth-context'
+import { apiFetch } from '@/lib/api'
+import { AppHeader } from '@/components/app-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, ArrowLeft, Monitor, Eye } from 'lucide-react'
+import { Loader2, Monitor, Eye } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 interface Asset {
@@ -60,7 +62,7 @@ export default function MyAssetsPage() {
       setLoading(true)
       // ใช้ username หรือ name ในการค้นหาทรัพย์สิน
       const userId = user.username || user.name
-      const response = await fetch(`/api/assets?user_id=${encodeURIComponent(userId)}&user_name=${encodeURIComponent(user.name)}`)
+      const response = await apiFetch(`/api/assets?user_id=${encodeURIComponent(userId)}&user_name=${encodeURIComponent(user.name)}`)
       const result = await response.json()
       
       if (result.success) {
@@ -84,32 +86,10 @@ export default function MyAssetsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">ระบบบำรุงรักษา</h1>
-              <p className="text-sm text-muted-foreground">ทรัพย์สินของคุณ</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="font-medium text-sm">{user?.name || user?.username}</p>
-              <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
-            </div>
-            <Button variant="outline" onClick={handleLogout}>
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">

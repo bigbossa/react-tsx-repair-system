@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import { apiFetch } from "@/lib/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Star } from "lucide-react"
 import Swal from "sweetalert2"
 
 interface FeedbackDialogProps {
@@ -16,16 +17,17 @@ interface FeedbackDialogProps {
 
 export function FeedbackDialog({ isOpen, onClose, requestId, onSuccess }: FeedbackDialogProps) {
   const [rating, setRating] = useState<string>("")
+  const [hoverRating, setHoverRating] = useState<number>(0)
   const [comment, setComment] = useState<string>("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const ratingOptions = [
-    { value: "5", label: "พึงพอใจมากที่สุด" },
-    { value: "4", label: "พึงพอใจมาก" },
-    { value: "3", label: "พึงพอใจปานกลาง" },
-    { value: "2", label: "พึงพอใจน้อย" },
-    { value: "1", label: "ไม่พึงพอใจ" }
-  ]
+  const ratingLabels: { [key: number]: string } = {
+    1: "ไม่พึงพอใจ",
+    2: "พึงพอใจน้อย",
+    3: "พึงพอใจปานกลาง",
+    4: "พึงพอใจมาก",
+    5: "พึงพอใจมากที่สุด"
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,7 +54,7 @@ export function FeedbackDialog({ isOpen, onClose, requestId, onSuccess }: Feedba
       console.log('Rating:', rating)
       
       // บันทึก feedback
-      const feedbackResponse = await fetch('/api/feedback', {
+      const feedbackResponse = await apiFetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,7 +85,7 @@ export function FeedbackDialog({ isOpen, onClose, requestId, onSuccess }: Feedba
       console.log('=== Updating ticket status ===')
       console.log('URL:', `/api/tickets/${requestId}`)
       
-      const statusResponse = await fetch(`/api/tickets/${requestId}`, {
+      const statusResponse = await apiFetch(`/api/tickets/${requestId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ Status: 2, status: 2 })  // ส่งทั้ง 2แบบมือถือและตัวใหญ่
@@ -151,24 +153,36 @@ export function FeedbackDialog({ isOpen, onClose, requestId, onSuccess }: Feedba
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* ระดับความพึงพอใจ */}
+          {/* ระดับความพึงพอใจ - Star Rating */}
           <div className="space-y-3">
             <Label className="text-base">
               ระดับความพึงพอใจ <span className="text-red-500">*</span>
             </Label>
-            <RadioGroup value={rating} onValueChange={setRating} className="space-y-3">
-              {ratingOptions.map((option) => (
-                <div key={option.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
-                  <RadioGroupItem value={option.value} id={`rating-${option.value}`} />
-                  <Label 
-                    htmlFor={`rating-${option.value}`} 
-                    className="flex-1 cursor-pointer font-normal"
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star.toString())}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className="p-1 transition-transform hover:scale-110 focus:outline-none"
                   >
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+                    <Star
+                      className={`w-10 h-10 transition-colors ${
+                        star <= (hoverRating || parseInt(rating) || 0)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground h-5">
+                {rating ? ratingLabels[parseInt(rating)] : (hoverRating ? ratingLabels[hoverRating] : "คลิกเพื่อให้คะแนน")}
+              </p>
+            </div>
           </div>
 
           {/* หมายเหตุ/ข้อเสนอแนะ */}

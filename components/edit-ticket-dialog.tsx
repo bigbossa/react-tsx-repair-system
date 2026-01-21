@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -45,7 +46,7 @@ export function EditTicketDialog({ ticket, isOpen, onClose, onSuccess }: EditTic
   useEffect(() => {
     const fetchDevices = async () => {
       try {
-        const response = await fetch('/api/devices')
+        const response = await apiFetch('/api/devices')
         if (response.ok) {
           const data = await response.json()
           // กรองเฉพาะอุปกรณ์ที่มีจำนวนเหลือ
@@ -145,7 +146,7 @@ export function EditTicketDialog({ ticket, isOpen, onClose, onSuccess }: EditTic
         status: '4', // เปลี่ยนสถานะเป็นรอการประเมิน
       }
 
-      const response = await fetch(`/api/tickets/${ticket.request_id}`, {
+      const response = await apiFetch(`/api/tickets/${ticket.request_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(submitData),
@@ -157,7 +158,7 @@ export function EditTicketDialog({ ticket, isOpen, onClose, onSuccess }: EditTic
           try {
             const device = equipmentList.find(d => d.id === selectedDeviceId)
             if (device) {
-              await fetch('/api/devices', {
+              await apiFetch('/api/devices', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -429,7 +430,7 @@ export function EditTicketDialog({ ticket, isOpen, onClose, onSuccess }: EditTic
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter >
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               ยกเลิก
             </Button>

@@ -18,8 +18,8 @@ interface EditTicketDialogProps {
 }
 
 export function EditTicketDialog({ ticket, isOpen, onClose, onSuccess }: EditTicketDialogProps) {
-  // Set finish_repair to today's date in Thailand timezone
-  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Bangkok' })
+  // Set finish_repair to today's date and time in Thailand timezone
+  const today = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Bangkok' }).replace(' ', 'T').slice(0, 16)
   
   const [formData, setFormData] = useState({
     Status: ticket.Status ?? 0,
@@ -279,14 +279,14 @@ export function EditTicketDialog({ ticket, isOpen, onClose, onSuccess }: EditTic
 
           {/* วันที่ซ่อมเสร็จ */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">วันที่ซ่อมเสร็จ</label>
+            <label className="text-sm font-medium">วันที่และเวลาซ่อมเสร็จ</label>
             <Input
-              type="date"
+              type="datetime-local"
               value={formData.finish_repair}
-              disabled
-              className="bg-muted cursor-not-allowed"
+              onChange={(e) => setFormData({ ...formData, finish_repair: e.target.value })}
+              className=""
             />
-            <p className="text-xs text-muted-foreground">วันที่ถูกกำหนดเป็นวันนี้โดยอัตโนมัติ</p>
+            <p className="text-xs text-muted-foreground">สามารถแก้ไขวันที่และเวลาได้</p>
           </div>
 
           {/* Cost Management Section */}

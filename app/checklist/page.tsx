@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/app/auth-context'
 import { apiFetch } from '@/lib/api'
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
-import { ArrowLeft, Search, Printer, Monitor, CheckCircle2, Building2, ChevronRight, Wrench } from 'lucide-react'
+import { ArrowLeft, Search, Printer, Monitor, CheckCircle2, Building2, ChevronRight, Wrench, Clock, Laptop } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -59,7 +59,7 @@ const printerChecklist = [
   'ทดลองใช้งาน'
 ]
 
-export default function ChecklistPage() {
+function MAChecklistPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -82,6 +82,59 @@ export default function ChecklistPage() {
   const [isRepairDialogOpen, setIsRepairDialogOpen] = useState(false)
   const [repairProblem, setRepairProblem] = useState('')
 
+  // โหลด drafts จาก database เมื่อ user login
+  useEffect(() => {
+    if (user?.username) {
+      fetchDraftsFromDB()
+    }
+  }, [user?.username])
+
+  // ฟังก์ชันโหลด drafts จาก database
+  const fetchDraftsFromDB = async () => {
+    try {
+      const response = await apiFetch(`/api/checklist-drafts?username=${user?.username}`)
+      const result = await response.json()
+      if (result.success) {
+        setChecklistDrafts(result.data)
+      }
+    } catch (error) {
+      console.error('Error loading drafts from DB:', error)
+    }
+  }
+
+  // ฟังก์ชันบันทึก draft ลง database
+  const saveDraftToDB = async (assetCode: string, deviceName: string, draftData: { items: boolean[], remarks: string }) => {
+    try {
+      await apiFetch('/api/checklist-drafts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: user?.username,
+          asset_code: assetCode || null,
+          device_name: deviceName || null,
+          draft_data: draftData
+        })
+      })
+    } catch (error) {
+      console.error('Error saving draft to DB:', error)
+    }
+  }
+
+  // ฟังก์ชันลบ draft จาก database
+  const deleteDraftFromDB = async (assetCode: string, deviceName: string) => {
+    try {
+      const params = new URLSearchParams({
+        username: user?.username || '',
+        ...(assetCode ? { asset_code: assetCode } : { device_name: deviceName })
+      })
+      await apiFetch(`/api/checklist-drafts?${params.toString()}`, {
+        method: 'DELETE'
+      })
+    } catch (error) {
+      console.error('Error deleting draft from DB:', error)
+    }
+  }
+
   // โหลด state จาก URL parameters
   useEffect(() => {
     const company = searchParams.get('company')
@@ -102,6 +155,7 @@ export default function ChecklistPage() {
     fetchAssets()
     fetchCompanies()
     fetchSites()
+    fetchAllMAHistory() // โหลด MA history ทั้งหมดตั้งแต่เริ่มต้น
   }, [user])
 
   // โหลดประวัติ MA เมื่อเลือกแผนก
@@ -154,6 +208,34 @@ export default function ChecklistPage() {
     }
   }
 
+  // โหลด MA history ทั้งหมดตั้งแต่เริ่มต้น (สำหรับแสดง progress)
+  const fetchAllMAHistory = async () => {
+    try {
+      setLoadingHistory(true)
+      const response = await apiFetch('/api/maintenance-records?limit=10000')
+      
+      if (!response.ok) {
+        console.error('Failed to fetch all MA history:', response.status)
+        setMaintenanceHistory([])
+        return
+      }
+      
+      const result = await response.json()
+      if (result.success) {
+        setMaintenanceHistory(result.data || [])
+        console.log('✓ Loaded all MA history:', result.data.length, 'records')
+        console.log('Sample records:', result.data.slice(0, 3))
+      } else {
+        setMaintenanceHistory([])
+      }
+    } catch (error) {
+      console.error('Error fetching all MA history:', error)
+      setMaintenanceHistory([])
+    } finally {
+      setLoadingHistory(false)
+    }
+  }
+
   const fetchDepartmentMAHistory = async () => {
     try {
       setLoadingHistory(true)
@@ -188,8 +270,9 @@ export default function ChecklistPage() {
     const categoryLower = asset.category?.toLowerCase() || ''
     const checklist = categoryLower === 'printer' ? printerChecklist : computerChecklist
     
-    // โหลด draft ที่เคยบันทึกไว้ (ถ้ามี)
-    const draft = checklistDrafts[asset.asset_code]
+    // โหลด draft ที่เคยบันทึกไว้ (ถ้ามี) - ใช้ asset_code หรือ device_name เป็น key
+    const draftKey = asset.asset_code || asset.device_name || asset.ref_devicename
+    const draft = draftKey ? checklistDrafts[draftKey] : null
     if (draft) {
       setChecklistItems(draft.items)
       setRemarks(draft.remarks)
@@ -233,7 +316,7 @@ export default function ChecklistPage() {
   }
 
   // ตรวจสอบว่าทำ MA ไปแล้วในช่วง 2 เดือนนี้หรือไม่
-  const isMADoneThisMonth = (assetCode: string): boolean => {
+  const isMADoneThisMonth = (asset: Asset): boolean => {
     const now = new Date()
     const currentMonth = now.getMonth()
     const currentYear = now.getFullYear()
@@ -242,7 +325,20 @@ export default function ChecklistPage() {
     const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1
     const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
 
-    const history = maintenanceHistory.filter(record => record.asset_code === assetCode)
+    // กรองโดยใช้ asset_code หรือ device_name
+    const history = maintenanceHistory.filter(record => {
+      if (!record || record.asset_code === undefined || record.device_name === undefined) return false  // ป้องกัน null/undefined
+      if (asset.asset_code) {
+        return record.asset_code === asset.asset_code
+      } else {
+        // ถ้าไม่มี asset_code ให้ใช้ device_name และ asset_code ต้องเป็น null
+        return !record.asset_code && record.device_name === (asset.device_name || asset.ref_devicename)
+      }
+    })
+    
+    if (history.length > 0) {
+      console.log(`Asset ${asset.asset_code || asset.device_name} has ${history.length} records:`, history.map(r => r.checked_at))
+    }
     
     return history.some(record => {
       const recordDate = new Date(record.checked_at)
@@ -258,7 +354,7 @@ export default function ChecklistPage() {
   }
 
   // หาวันที่ทำ MA ครั้งล่าสุดในช่วง 2 เดือนนี้
-  const getLastMADateThisMonth = (assetCode: string): string | null => {
+  const getLastMADateThisMonth = (asset: Asset): string | null => {
     const now = new Date()
     const currentMonth = now.getMonth()
     const currentYear = now.getFullYear()
@@ -268,6 +364,7 @@ export default function ChecklistPage() {
     const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
 
     const history = maintenanceHistory.filter(record => {
+      if (!record || record.asset_code === undefined || record.device_name === undefined) return false  // ป้องกัน null/undefined
       const recordDate = new Date(record.checked_at)
       const recordMonth = recordDate.getMonth()
       const recordYear = recordDate.getFullYear()
@@ -276,7 +373,15 @@ export default function ChecklistPage() {
       const isCurrentMonth = recordMonth === currentMonth && recordYear === currentYear
       const isPrevMonth = recordMonth === prevMonth && recordYear === prevMonthYear
       
-      return record.asset_code === assetCode && (isCurrentMonth || isPrevMonth)
+      // กรองโดยใช้ asset_code หรือ device_name
+      let isMatch = false
+      if (asset.asset_code) {
+        isMatch = record.asset_code === asset.asset_code
+      } else {
+        isMatch = !record.asset_code && record.device_name === (asset.device_name || asset.ref_devicename)
+      }
+      
+      return isMatch && (isCurrentMonth || isPrevMonth)
     })
 
     if (history.length === 0) return null
@@ -297,8 +402,8 @@ export default function ChecklistPage() {
     if (!selectedAsset) return
 
     // ตรวจสอบว่าทำ MA ไปแล้วในช่วง 2 เดือนนี้หรือไม่
-    if (isMADoneThisMonth(selectedAsset.asset_code)) {
-      const lastMADate = getLastMADateThisMonth(selectedAsset.asset_code)
+    if (isMADoneThisMonth(selectedAsset)) {
+      const lastMADate = getLastMADateThisMonth(selectedAsset)
       const result = await Swal.fire({
         icon: 'warning',
         title: 'ทำ MA ไปแล้วในช่วง 2 เดือนนี้!',
@@ -338,21 +443,36 @@ export default function ChecklistPage() {
       checked: checklistItems[index]
     }))
 
+    // ตรวจสอบว่ามี asset_code หรือ device_name (สำหรับเครื่องปริ้นเตอร์ที่ไม่มีรหัสทรัพย์สิน)
+    const assetIdentifier = selectedAsset?.asset_code || selectedAsset?.device_name || selectedAsset?.ref_devicename
+    if (!assetIdentifier) {
+      console.error('❌ Cannot identify asset:', selectedAsset)
+      Swal.fire({
+        icon: 'error',
+        title: 'ข้อมูลไม่ครบ',
+        text: 'ไม่พบข้อมูลระบุทรัพย์สิน กรุณาเลือกทรัพย์สินใหม่อีกครั้ง',
+        confirmButtonText: 'ตกลง'
+      })
+      return
+    }
+
     const data = {
       asset_id: selectedAsset.id,
-      asset_code: selectedAsset.asset_code,
-      device_name: selectedAsset.device_name,
-      category: selectedAsset.category,
-      company: selectedAsset.company,
-      site: selectedAsset.site,
-      department: selectedAsset.department,
-      user_name: selectedAsset.user_name,
+      asset_code: selectedAsset.asset_code || null,
+      device_name: selectedAsset.device_name || selectedAsset.ref_devicename || 'ไม่ระบุ',
+      category: selectedAsset.category || 'ไม่ระบุ',
+      company: selectedAsset.company || 'ไม่ระบุ',
+      site: selectedAsset.site || 'ไม่ระบุ',
+      department: selectedAsset.department || 'ไม่ระบุ',
+      user_name: selectedAsset.user_name || 'ไม่ระบุ',
       user_contact: '', // TODO: เพิ่มฟิลด์ user_contact ในตาราง assets หรือใช้ LINE ID
       checklist: checklistData,
       remarks: remarks,
-      checked_by: user?.username,
+      checked_by: user?.username || 'unknown',
       checked_at: new Date().toISOString()
     }
+
+    console.log('📤 Sending MA data:', data)
 
     try {
       const response = await apiFetch('/api/maintenance-records', {
@@ -382,11 +502,15 @@ export default function ChecklistPage() {
           timer: 2000
         })
 
-        // ลบ draft ที่บันทึกไว้เมื่อบันทึกสำเร็จ
-        const newDrafts = { ...checklistDrafts }
-        delete newDrafts[selectedAsset.asset_code]
-        setChecklistDrafts(newDrafts)
-
+        // ลบ draft ที่บันทึกไว้เมื่อบันทึกสำเร็จ (ทั้ง state และ database)
+      const draftKey = selectedAsset.asset_code || selectedAsset.device_name || selectedAsset.ref_devicename
+      const newDrafts = { ...checklistDrafts }
+      delete newDrafts[draftKey]
+      setChecklistDrafts(newDrafts)
+      await deleteDraftFromDB(
+        selectedAsset.asset_code || '',
+        selectedAsset.device_name || selectedAsset.ref_devicename || ''
+      )
         setIsDialogOpen(false)
         setSelectedAsset(null)
         
@@ -506,6 +630,7 @@ export default function ChecklistPage() {
 
   // Group by company
   const groupedByCompany = assets.reduce((acc, asset) => {
+    if (!asset || !asset.company) return acc  // ป้องกัน null/undefined
     if (!acc[asset.company]) {
       acc[asset.company] = []
     }
@@ -515,29 +640,32 @@ export default function ChecklistPage() {
 
   // Get sites for selected company
   const sitesInCompany = selectedCompany 
-    ? Array.from(new Set(assets.filter(a => a.company === selectedCompany).map(a => a.site)))
+    ? Array.from(new Set(assets.filter(a => a && a.company === selectedCompany).map(a => a.site)))
     : []
 
   // Get departments for selected site
   const departmentsInSite = selectedCompany && selectedSite 
-    ? Array.from(new Set(assets.filter(a => a.company === selectedCompany && a.site === selectedSite).map(a => a.department)))
+    ? Array.from(new Set(assets.filter(a => a && a.company === selectedCompany && a.site === selectedSite).map(a => a.department)))
     : []
 
   // Get assets for selected department
   const assetsInDepartment = selectedCompany && selectedSite && selectedDepartment
-    ? assets.filter(a => a.company === selectedCompany && a.site === selectedSite && a.department === selectedDepartment)
+    ? assets.filter(a => a && a.company === selectedCompany && a.site === selectedSite && a.department === selectedDepartment)
     : []
 
   // Group by category (case-insensitive)
   const computerAssets = assetsInDepartment.filter(a => {
+    if (!a) return false  // ป้องกัน null
     const cat = (a.category || '').toLowerCase()
     return cat === 'computer' || cat === 'pc&computer'
   })
   const notebookAssets = assetsInDepartment.filter(a => {
+    if (!a) return false  // ป้องกัน null
     const cat = (a.category || '').toLowerCase()
     return cat === 'notebook'
   })
   const printerAssets = assetsInDepartment.filter(a => {
+    if (!a) return false  // ป้องกัน null
     const cat = (a.category || '').toLowerCase()
     return cat === 'printer'
   })
@@ -658,7 +786,7 @@ export default function ChecklistPage() {
                     const totalAssets = computerCount + notebookCount + printerCount
                     const completedAssets = companyAssets.filter(a => {
                       const cat = (a.category || '').toLowerCase()
-                      return (cat === 'computer' || cat === 'pc&computer' || cat === 'notebook' || cat === 'printer') && isMADoneThisMonth(a.asset_code)
+                      return (cat === 'computer' || cat === 'pc&computer' || cat === 'notebook' || cat === 'printer') && isMADoneThisMonth(a)
                     }).length
                     const progressPercent = totalAssets > 0 ? Math.round((completedAssets / totalAssets) * 100) : 0
                     const companyInfo = companies.find(c => c.company_code === companyCode)
@@ -742,7 +870,7 @@ export default function ChecklistPage() {
                     const totalAssets = computerCount + notebookCount + printerCount
                     const completedAssets = siteAssets.filter(a => {
                       const cat = (a.category || '').toLowerCase()
-                      return (cat === 'computer' || cat === 'pc&computer' || cat === 'notebook' || cat === 'printer') && isMADoneThisMonth(a.asset_code)
+                      return (cat === 'computer' || cat === 'pc&computer' || cat === 'notebook' || cat === 'printer') && isMADoneThisMonth(a)
                     }).length
                     const progressPercent = totalAssets > 0 ? Math.round((completedAssets / totalAssets) * 100) : 0
                     const siteInfo = sites.find(s => s.site_code === site)
@@ -774,7 +902,7 @@ export default function ChecklistPage() {
                                 {computerCount}
                               </Badge>
                               <Badge variant="outline" className="flex items-center gap-1 bg-purple-50">
-                                <Monitor className="h-3 w-3 text-purple-600" />
+                                <Laptop className="h-3 w-3 text-purple-600" />
                                 {notebookCount}
                               </Badge>
                               <Badge variant="outline" className="flex items-center gap-1">
@@ -824,7 +952,7 @@ export default function ChecklistPage() {
                     const totalAssets = computerCount + notebookCount + printerCount
                     const completedAssets = deptAssets.filter(a => {
                       const cat = (a.category || '').toLowerCase()
-                      return (cat === 'computer' || cat === 'pc&computer' || cat === 'notebook' || cat === 'printer') && isMADoneThisMonth(a.asset_code)
+                      return (cat === 'computer' || cat === 'pc&computer' || cat === 'notebook' || cat === 'printer') && isMADoneThisMonth(a)
                     }).length
                     const progressPercent = totalAssets > 0 ? Math.round((completedAssets / totalAssets) * 100) : 0
                     
@@ -861,7 +989,7 @@ export default function ChecklistPage() {
                                 {computerCount}
                               </Badge>
                               <Badge variant="outline" className="flex items-center gap-1 bg-purple-50">
-                                <Monitor className="h-3 w-3 text-purple-600" />
+                                <Laptop className="h-3 w-3 text-purple-600" />
                                 {notebookCount}
                               </Badge>
                               <Badge variant="outline" className="flex items-center gap-1">
@@ -903,11 +1031,13 @@ export default function ChecklistPage() {
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {computerAssets.map((asset) => {
-                          const isDone = isMADoneThisMonth(asset.asset_code)
-                          const lastDate = getLastMADateThisMonth(asset.asset_code)
+                          const isDone = isMADoneThisMonth(asset)
+                          const lastDate = getLastMADateThisMonth(asset)
+                          const draftKey = asset.asset_code || asset.device_name || asset.ref_devicename
+                          const hasDraft = draftKey ? checklistDrafts[draftKey] : null
                           
                           return (
-                            <Card key={asset.id} className={`hover:shadow-lg transition-shadow ${isDone ? 'border-green-500 bg-green-50' : ''}`}>
+                            <Card key={asset.id} className={`hover:shadow-lg transition-shadow ${isDone ? 'border-green-500 bg-green-50' : hasDraft ? 'border-orange-400 bg-orange-50' : ''}`}>
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between mb-3">
                                   <div className="flex items-center gap-2">
@@ -917,11 +1047,19 @@ export default function ChecklistPage() {
                                       <p className="text-xs text-muted-foreground">{asset.asset_code}</p>
                                     </div>
                                   </div>
-                                  {isDone && (
-                                    <Badge className="bg-green-600 text-white text-xs">
-                                      ✓ ทำแล้ว
-                                    </Badge>
-                                  )}
+                                  <div className="flex flex-col gap-1 items-end">
+                                    {isDone && (
+                                      <Badge className="bg-green-600 text-white text-xs">
+                                        ✓ ทำแล้ว
+                                      </Badge>
+                                    )}
+                                    {hasDraft && (
+                                      <Badge className="bg-orange-500 text-white text-xs flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        ทำค้าง
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="space-y-1 mb-3 text-xs">
                                   <p><span className="font-semibold">ผู้ใช้งาน:</span> {asset.user_name}</p>
@@ -951,30 +1089,40 @@ export default function ChecklistPage() {
                   {notebookAssets.length > 0 && (
                     <div>
                       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Monitor className="h-5 w-5 text-purple-600" />
+                        <Laptop className="h-5 w-5 text-purple-600" />
                         Notebook ({notebookAssets.length} เครื่อง)
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {notebookAssets.map((asset) => {
-                          const isDone = isMADoneThisMonth(asset.asset_code)
-                          const lastDate = getLastMADateThisMonth(asset.asset_code)
+                          const isDone = isMADoneThisMonth(asset)
+                          const lastDate = getLastMADateThisMonth(asset)
+                          const draftKey = asset.asset_code || asset.device_name || asset.ref_devicename
+                          const hasDraft = draftKey ? checklistDrafts[draftKey] : null
                           
                           return (
-                            <Card key={asset.id} className={`hover:shadow-lg transition-shadow ${isDone ? 'border-green-500 bg-green-50' : ''}`}>
+                            <Card key={asset.id} className={`hover:shadow-lg transition-shadow ${isDone ? 'border-green-500 bg-green-50' : hasDraft ? 'border-orange-400 bg-orange-50' : ''}`}>
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between mb-3">
                                   <div className="flex items-center gap-2">
-                                    <Monitor className="h-5 w-5 text-purple-600" />
+                                    <Laptop className="h-5 w-5 text-purple-600" />
                                     <div>
                                       <p className="font-bold text-sm">{asset.device_name}</p>
                                       <p className="text-xs text-muted-foreground">{asset.asset_code}</p>
                                     </div>
                                   </div>
-                                  {isDone && (
-                                    <Badge className="bg-green-600 text-white text-xs">
-                                      ✓ ทำแล้ว
-                                    </Badge>
-                                  )}
+                                  <div className="flex flex-col gap-1 items-end">
+                                    {isDone && (
+                                      <Badge className="bg-green-600 text-white text-xs">
+                                        ✓ ทำแล้ว
+                                      </Badge>
+                                    )}
+                                    {hasDraft && (
+                                      <Badge className="bg-orange-500 text-white text-xs flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        ทำค้าง
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="space-y-1 mb-3 text-xs">
                                   <p><span className="font-semibold">ผู้ใช้งาน:</span> {asset.user_name}</p>
@@ -1009,11 +1157,13 @@ export default function ChecklistPage() {
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {printerAssets.map((asset) => {
-                          const isDone = isMADoneThisMonth(asset.asset_code)
-                          const lastDate = getLastMADateThisMonth(asset.asset_code)
+                          const isDone = isMADoneThisMonth(asset)
+                          const lastDate = getLastMADateThisMonth(asset)
+                          const draftKey = asset.asset_code || asset.device_name || asset.ref_devicename
+                          const hasDraft = draftKey ? checklistDrafts[draftKey] : null
                           
                           return (
-                            <Card key={asset.id} className={`hover:shadow-lg transition-shadow ${isDone ? 'border-green-500 bg-green-50' : ''}`}>
+                            <Card key={asset.id} className={`hover:shadow-lg transition-shadow ${isDone ? 'border-green-500 bg-green-50' : hasDraft ? 'border-orange-400 bg-orange-50' : ''}`}>
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between mb-3">
                                   <div className="flex items-center gap-2">
@@ -1023,11 +1173,19 @@ export default function ChecklistPage() {
                                       <p className="text-xs text-muted-foreground">{asset.asset_code}</p>
                                     </div>
                                   </div>
-                                  {isDone && (
-                                    <Badge className="bg-green-600 text-white text-xs">
-                                      ✓ ทำแล้ว
-                                    </Badge>
-                                  )}
+                                  <div className="flex flex-col gap-1 items-end">
+                                    {isDone && (
+                                      <Badge className="bg-green-600 text-white text-xs">
+                                        ✓ ทำแล้ว
+                                      </Badge>
+                                    )}
+                                    {hasDraft && (
+                                      <Badge className="bg-orange-500 text-white text-xs flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        ทำค้าง
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="space-y-1 mb-3 text-xs">
                                   <p><span className="font-semibold">ผู้ใช้งาน:</span> {asset.user_name}</p>
@@ -1099,15 +1257,22 @@ export default function ChecklistPage() {
                         newItems[index] = checked as boolean
                         setChecklistItems(newItems)
                         
-                        // บันทึก draft
+                        // บันทึก draft ลง database
                         if (selectedAsset) {
+                          const newDraftData = {
+                            items: newItems,
+                            remarks: remarks
+                          }
+                          const draftKey = selectedAsset.asset_code || selectedAsset.device_name || selectedAsset.ref_devicename
                           setChecklistDrafts({
                             ...checklistDrafts,
-                            [selectedAsset.asset_code]: {
-                              items: newItems,
-                              remarks: remarks
-                            }
+                            [draftKey]: newDraftData
                           })
+                          saveDraftToDB(
+                            selectedAsset.asset_code || '',
+                            selectedAsset.device_name || selectedAsset.ref_devicename || '',
+                            newDraftData
+                          )
                         }
                       }}
                     />
@@ -1131,15 +1296,22 @@ export default function ChecklistPage() {
                   onChange={(e) => {
                     setRemarks(e.target.value)
                     
-                    // บันทึก draft
+                    // บันทึก draft ลง database
                     if (selectedAsset) {
+                      const newDraftData = {
+                        items: checklistItems,
+                        remarks: e.target.value
+                      }
+                      const draftKey = selectedAsset.asset_code || selectedAsset.device_name || selectedAsset.ref_devicename
                       setChecklistDrafts({
                         ...checklistDrafts,
-                        [selectedAsset.asset_code]: {
-                          items: checklistItems,
-                          remarks: e.target.value
-                        }
+                        [draftKey]: newDraftData
                       })
+                      saveDraftToDB(
+                        selectedAsset.asset_code || '',
+                        selectedAsset.device_name || selectedAsset.ref_devicename || '',
+                        newDraftData
+                      )
                     }
                   }}
                   rows={4}
@@ -1224,15 +1396,26 @@ export default function ChecklistPage() {
                 <div className="flex gap-2">
                   <Button 
                     variant="outline"
-                    onClick={() => {
-                      // บันทึก draft และปิด dialog
+                    onClick={async () => {
+                      // บันทึก draft ลง database
+                      if (selectedAsset) {
+                        const draftData = {
+                          items: checklistItems,
+                          remarks: remarks
+                        }
+                        await saveDraftToDB(
+                          selectedAsset.asset_code || '',
+                          selectedAsset.device_name || selectedAsset.ref_devicename || '',
+                          draftData
+                        )
+                      }
                       setIsDialogOpen(false)
                       Swal.fire({
                         icon: 'success',
                         title: 'บันทึกไว้แล้ว',
-                        text: 'คุณสามารถกลับมาทำต่อได้ภายหลัง',
+                        html: '<p>คุณสามารถกลับมาทำต่อได้ภายหลัง</p><p class="text-sm text-gray-600">✨ เปิดจากเครื่องอื่นก็เห็น draft นี้ได้</p>',
                         confirmButtonText: 'ตกลง',
-                        timer: 1500
+                        timer: 2000
                       })
                     }}
                   >
@@ -1384,3 +1567,25 @@ export default function ChecklistPage() {
     </div>
   )
 }
+
+function ChecklistPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <AppHeader />
+        <main className="container mx-auto p-4 max-w-6xl mt-16">
+          <div className="flex justify-center items-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">กำลังโหลด...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    }>
+      <MAChecklistPage />
+    </Suspense>
+  )
+}
+
+export default ChecklistPageWrapper

@@ -51,7 +51,7 @@ export function LoginForm() {
         localStorage.removeItem('rememberPassword')
       }
       
-      router.push("/dashboard")
+      router.push("/report")
     } catch (err) {
       setError("Invalid username or password")
     } finally {
@@ -70,7 +70,7 @@ export function LoginForm() {
 
     try {
       await login(credentials[role].username, credentials[role].password)
-      router.push("/dashboard")
+      router.push("/report")
     } catch (err) {
       setError("Login failed")
     } finally {

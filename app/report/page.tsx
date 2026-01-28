@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/auth-context";
 import { apiFetch } from '@/lib/api';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Swal from "sweetalert2";
 import {
   Wrench,
   Building2,
@@ -18,6 +19,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  Bell,
+  AlertCircle,
 } from "lucide-react";
 import {
   Table,
@@ -43,6 +46,7 @@ import {
 } from "@/components/ui/select";
 import { TicketDetail } from "@/components/ticket-detail";
 import { FeedbackDataTable } from "@/components/feedback-data-table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Feedback {
   form_id: number;
@@ -85,6 +89,8 @@ export default function ReportPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expiringLicensesCount, setExpiringLicensesCount] = useState(0);
+  const hasShownLicenseAlert = useRef(false);
 
   const [feedbackStats, setFeedbackStats] = useState({
     total: 0,
@@ -276,6 +282,72 @@ export default function ReportPage() {
   useEffect(() => {
     fetchAllData();
   }, []);
+
+  // ตรวจสอบ License ที่ใกล้หมดอายุและแสดง popup
+  useEffect(() => {
+    const showLicenseAlert = async () => {
+      if (!user || user.role !== 'admin') return
+      if (hasShownLicenseAlert.current) return
+      
+      try {
+        const response = await apiFetch('/api/subscriptions')
+        if (!response.ok) return
+
+        const subscriptions = await response.json()
+        const today = new Date()
+        const expiringLicenses = subscriptions.filter((sub: any) => {
+          const expiryDate = new Date(sub.expiry_date)
+          const diffTime = expiryDate.getTime() - today.getTime()
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+          return diffDays >= 0 && diffDays < 20 // เหลือน้อยกว่า 20 วัน
+        })
+
+        setExpiringLicensesCount(expiringLicenses.length)
+
+        if (expiringLicenses.length > 0) {
+          const licenseList = expiringLicenses.map((sub: any) => {
+            const expiryDate = new Date(sub.expiry_date)
+            const diffTime = expiryDate.getTime() - today.getTime()
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+            return `<div style="text-align: left; padding: 8px; border-bottom: 1px solid #eee;">
+              <strong>${sub.program_name}</strong><br/>
+              <span style="color: #666;">${sub.company_name || '-'}</span><br/>
+              <span style="color: ${diffDays <= 7 ? '#dc2626' : '#ea580c'}; font-weight: bold;">เหลือ ${diffDays} วัน</span>
+            </div>`
+          }).join('')
+
+          await Swal.fire({
+            icon: 'warning',
+            title: 'แจ้งเตือนค่า License!',
+            html: `
+              <div style="margin-bottom: 16px;">
+                <p style="color: #666;">มี License ${expiringLicenses.length} รายการที่ใกล้หมดอายุ (เหลือน้อยกว่า 20 วัน)</p>
+              </div>
+              <div style="max-height: 300px; overflow-y: auto; text-align: left;">
+                ${licenseList}
+              </div>
+            `,
+            confirmButtonText: 'ดูรายละเอียด',
+            confirmButtonColor: '#3b82f6',
+            showCancelButton: true,
+            cancelButtonText: 'ปิด',
+            width: '600px'
+          }).then((result) => {
+            hasShownLicenseAlert.current = true
+            if (result.isConfirmed) {
+              router.push('/subscriptions')
+            }
+          })
+        }
+      } catch (error) {
+        console.error('Error checking expiring licenses:', error)
+      }
+    }
+
+    if (user && !isLoading) {
+      showLicenseAlert()
+    }
+  }, [user, isLoading, router])
 
   useEffect(() => {
     if (tickets.length > 0) {
@@ -780,6 +852,27 @@ export default function ReportPage() {
       <AppHeader />
 
       <main className="max-w-full mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8 w-full">
+        {/* License Expiry Alert */}
+        {expiringLicensesCount > 0 && (
+          <Alert 
+            className="bg-orange-50 border-orange-200 cursor-pointer hover:bg-orange-100 transition-colors mb-6"
+            onClick={() => router.push('/subscriptions')}
+          >
+            <AlertCircle className="h-5 w-5 text-orange-600" />
+            <AlertDescription className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-orange-600" />
+                <span className="font-medium text-orange-900">
+                  แจ้งเตือน: มี License {expiringLicensesCount} รายการที่ใกล้หมดอายุ (เหลือน้อยกว่า 20 วัน)
+                </span>
+              </div>
+              <span className="text-sm text-orange-700 hover:underline">
+                คลิกเพื่อดูรายละเอียด →
+              </span>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
@@ -2283,11 +2376,19 @@ export default function ReportPage() {
                             const diffTime = Math.abs(
                               endDate.getTime() - startDate.getTime()
                             );
-                            const diffDays = Math.ceil(
-                              diffTime / (1000 * 60 * 60 * 24)
-                            );
+                            const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+                            const diffDays = Math.floor(diffHours / 24);
+                            const remainingHours = diffHours % 24;
 
-                            return `${diffDays} วัน`;
+                            if (diffHours < 24) {
+                              return `${diffHours} ชั่วโมง`;
+                            } else {
+                              if (remainingHours > 0) {
+                                return `${diffDays} วัน ${remainingHours} ชั่วโมง`;
+                              } else {
+                                return `${diffDays} วัน`;
+                              }
+                            }
                           })()}
                         </p>
                       </div>

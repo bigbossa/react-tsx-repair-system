@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { apiFetch } from "@/lib/api"
 import Swal from "sweetalert2"
 
 interface Device {
@@ -70,7 +71,7 @@ export function DeviceDialog({ open, onOpenChange, device, onSuccess }: DeviceDi
       const method = device ? "PUT" : "POST"
       const body = device ? { ...formData, id: device.id } : formData
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: {
           "Content-Type": "application/json"

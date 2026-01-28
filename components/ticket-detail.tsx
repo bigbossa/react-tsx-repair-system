@@ -318,7 +318,7 @@ export function TicketDetail({
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase">วันที่แจ้ง</p>
             <p className="text-sm mt-1">
-              {formatDateThai(ticket.created_at, 'long')}
+              {formatDateTimeThai(ticket.created_at)}
             </p>
           </div>
 
@@ -350,12 +350,27 @@ export function TicketDetail({
             if (!endDate) return null
             
             const diffTime = Math.abs(endDate.getTime() - startDate.getTime())
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+            const diffHours = Math.floor(diffTime / (1000 * 60 * 60))
+            const diffDays = Math.floor(diffHours / 24)
+            const remainingHours = diffHours % 24
+            
+            let timeText = ''
+            if (diffHours < 24) {
+              // น้อยกว่า 24 ชั่วโมง แสดงเป็นชั่วโมง
+              timeText = `${diffHours} ชั่วโมง`
+            } else {
+              // มากกว่า 24 ชั่วโมง แสดงเป็นวัน + ชั่วโมง
+              if (remainingHours > 0) {
+                timeText = `${diffDays} วัน ${remainingHours} ชั่วโมง`
+              } else {
+                timeText = `${diffDays} วัน`
+              }
+            }
             
             return (
               <div>
                 <p className="text-xs font-semibold text-muted-foreground uppercase">ระยะเวลา{status === 2 ? 'การซ่อม' : ''}</p>
-                <p className="text-sm mt-1 font-semibold text-orange-700">{diffDays} วัน</p>
+                <p className="text-sm mt-1 font-semibold text-orange-700">{timeText}</p>
               </div>
             )
           })()}
@@ -542,7 +557,7 @@ export function TicketDetail({
           <div className="border-t pt-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">วันที่ซ่อมเสร็จ/ยกเลิก (finish_repair)</p>
             <p className="text-sm font-medium text-green-700">
-              {formatDateThai(ticket.finish_repair, 'long')}
+              {formatDateTimeThai(ticket.finish_repair)}
             </p>
           </div>
         )}

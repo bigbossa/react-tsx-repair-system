@@ -124,13 +124,33 @@ export async function POST(request: NextRequest) {
       site,
       department,
       user_name,
-      checked_by
+      checked_by,
+      hasChecklist: !!checklist,
+      checklistType: typeof checklist,
+      checklistLength: Array.isArray(checklist) ? checklist.length : 'not array'
     })
 
-    // ตรวจสอบข้อมูลที่จำเป็น
-    if (!asset_code || !checklist || !checked_by) {
+    // ตรวจสอบข้อมูลที่จำเป็น - ต้องมี asset_code หรือ device_name (สำหรับเครื่องปริ้นเตอร์ที่ไม่มีรหัส)
+    if (!asset_code && !device_name) {
+      console.error('❌ Validation failed: missing both asset_code and device_name')
       return NextResponse.json(
-        { success: false, error: 'กรุณากรอกข้อมูลให้ครบถ้วน' },
+        { success: false, error: 'กรุณาระบุรหัสทรัพย์สิน (asset_code) หรือชื่ออุปกรณ์ (device_name)' },
+        { status: 400 }
+      )
+    }
+
+    if (!checklist || !Array.isArray(checklist) || checklist.length === 0) {
+      console.error('❌ Validation failed: invalid checklist', { checklist })
+      return NextResponse.json(
+        { success: false, error: 'กรุณาระบุรายการตรวจสอบ (checklist) ที่ถูกต้อง' },
+        { status: 400 }
+      )
+    }
+
+    if (!checked_by) {
+      console.error('❌ Validation failed: missing checked_by')
+      return NextResponse.json(
+        { success: false, error: 'กรุณาระบุผู้ตรวจสอบ (checked_by)' },
         { status: 400 }
       )
     }
@@ -150,7 +170,7 @@ export async function POST(request: NextRequest) {
 
     const values = [
       asset_id || null,
-      asset_code,
+      asset_code || null,  // อนุญาตให้เป็น null สำหรับเครื่องปริ้นเตอร์ที่ไม่มีรหัส
       device_name || '-',
       category || '-',
       company || '-',

@@ -63,6 +63,17 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
     setFormData(prev => ({ ...prev, username: userName }))
   }, [userName])
 
+  // Update type_of_work when formType changes
+  React.useEffect(() => {
+    if (formType === "repair") {
+      setFormData(prev => ({ ...prev, type_of_work: "งานซ่อม" }))
+    } else if (formType === "request") {
+      setFormData(prev => ({ ...prev, type_of_work: "งานบริการ" }))
+    } else {
+      setFormData(prev => ({ ...prev, type_of_work: "" }))
+    }
+  }, [formType])
+
   // Fetch all assets for search
   React.useEffect(() => {
     const fetchAllAssets = async () => {
@@ -236,9 +247,17 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
       }
     }
     
-    console.log('Submitting form data:', { ...formData, formType, ...costData })
+    // Ensure type_of_work is set correctly based on formType
+    const finalData = {
+      ...formData,
+      type_of_work: formType === "repair" ? "งานซ่อม" : "งานบริการ",
+      formType,
+      ...costData
+    }
+    
+    console.log('Submitting form data:', finalData)
     console.log('Image URL:', formData.img)
-    await onSubmit({ ...formData, formType, ...costData })
+    await onSubmit(finalData)
     
     // Reset form
     setFormData({
@@ -551,7 +570,7 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
                     )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 hidden">
                     <label className="text-sm font-medium">ชนิดของงาน <span className="text-red-500">*</span></label>
                     <Select
                       value={formData.work}
@@ -572,14 +591,15 @@ export function UserTicketForm({ onSubmit, isLoading = false, userName = "", use
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 hidden">
                     <label className="text-sm font-medium">ประเภทของงาน <span className="text-red-500">*</span></label>
                     <Select
                       value={formData.type_of_work}
-                      onValueChange={(value) => setFormData({ ...formData, type_of_work: value })}
+                      onValueChange={(งานซ่อม) => setFormData({ ...formData, type_of_work: value })}
                       required
+                      disabled                          
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-muted cursor-not-allowed">
                         <SelectValue placeholder="เลือกประเภทของงาน" />
                       </SelectTrigger>
                       <SelectContent>

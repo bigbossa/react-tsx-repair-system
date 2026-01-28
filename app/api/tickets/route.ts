@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
     const params: any[] = []
     
     // กรองตามหลายสาขา (sites) หรือ สาขาเดียว (site) - join กับ Assets เพื่อดึง site
+    // รวมถึง tickets ที่ไม่มี asset (เช่น request/แบบเบิก)
     if (sites) {
       const siteList = sites.split(',').map(s => s.trim()).filter(s => s)
       if (siteList.length > 0) {
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
           SELECT r.*, a.site 
           FROM repairrequest r
           LEFT JOIN public."Assets" a ON r.asset_id = a.asset_code
-          WHERE a.site IN (${placeholders})
+          WHERE a.site IN (${placeholders}) OR r.asset_id IS NULL OR a.site IS NULL
           ORDER BY r.created_at DESC
         `
         params.push(...siteList)
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
         SELECT r.*, a.site 
         FROM repairrequest r
         LEFT JOIN public."Assets" a ON r.asset_id = a.asset_code
-        WHERE a.site = $1
+        WHERE a.site = $1 OR r.asset_id IS NULL OR a.site IS NULL
         ORDER BY r.created_at DESC
       `
       params.push(site)

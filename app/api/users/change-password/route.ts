@@ -10,6 +10,8 @@ export async function POST(request: Request) {
   try {
     const { userid, oldPassword, newPassword } = await request.json()
 
+    console.log('🔐 Change password request for:', userid)
+
     if (!userid || !oldPassword || !newPassword) {
       return NextResponse.json(
         { error: 'กรุณากรอกข้อมูลให้ครบถ้วน' },
@@ -18,10 +20,12 @@ export async function POST(request: Request) {
     }
 
     // ตรวจสอบรหัสผ่านเดิม
+    console.log('📝 Querying user from database...')
     const userResult = await pool.query(
       'SELECT user_password FROM users WHERE userid = $1',
       [userid]
     )
+    console.log('✅ Query result:', userResult.rows.length, 'users found')
 
     if (userResult.rows.length === 0) {
       return NextResponse.json(
@@ -52,9 +56,17 @@ export async function POST(request: Request) {
     })
 
   } catch (error) {
-    console.error('Change password error:', error)
+    console.error('❌ Change password error:', error)
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน' },
+      { 
+        error: 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน',
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     )
   }

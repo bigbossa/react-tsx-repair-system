@@ -110,7 +110,7 @@ export function UserDashboard() {
 
       // When approving assessment (status 2), set finish_repair and calculate total_date
       if (status === "2") {
-        const currentDate = new Date().toISOString().split('T')[0]
+        const currentDate = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Bangkok' }).replace(' ', 'T')
         updateData.finish_repair = currentDate
 
         // Calculate total_date if start_repair exists
@@ -124,7 +124,7 @@ export function UserDashboard() {
         }
       }
 
-      const response = await fetch(`/api/tickets/${selectedTicket.request_id}`, {
+      const response = await apiFetch(`/api/tickets/${selectedTicket.request_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
@@ -294,7 +294,7 @@ export function UserDashboard() {
                                   
                                   if (result.isConfirmed) {
                                     try {
-                                      const response = await fetch(`/api/tickets/${ticket.request_id}`, {
+                                      const response = await apiFetch(`/api/tickets/${ticket.request_id}`, {
                                         method: "PUT",
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify({ Status: 3, cancel_whit: ticket.username }),

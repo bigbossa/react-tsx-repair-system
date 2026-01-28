@@ -14,7 +14,7 @@ export default function Home() {
   useEffect(() => {
     // ถ้า login แล้วไป dashboard
     if (user && !isLoading) {
-      router.push("/dashboard")
+      router.push("/report")
     }
   }, [user, isLoading, router])
 

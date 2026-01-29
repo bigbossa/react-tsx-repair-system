@@ -171,12 +171,12 @@ export function AppHeader() {
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />
-                  <DropdownMenuSeparator />
+                  
                   
                   {/* จัดการทรัพย์สิน - Collapsible */}
                   <Collapsible open={assetsOpen} onOpenChange={setAssetsOpen}>
                     <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between px-2 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded cursor-pointer">
+                      <div className="flex items-center justify-between px-2 py-2 text-sm font-semibold text-blackpm hover:bg-blue-50 rounded cursor-pointer">
                         <span>จัดการทรัพย์สิน</span>
                         <ChevronRight className={`h-4 w-4 transition-transform ${assetsOpen ? 'rotate-90' : ''}`} />
                       </div>
@@ -194,7 +194,7 @@ export function AppHeader() {
                         className="cursor-pointer py-2.5 px-3 pl-8 hover:bg-blue-50 focus:bg-blue-50"
                       >
                         <UserMinus className="h-4 w-4 mr-3 text-blue-600" />
-                        <span className="text-sm">ทรัพย์สินที่ไม่มีผู้ใช้งาน</span>
+                        <span className="text-sm">ทรัพย์สิน(ไม่มีผู้ดูแล)</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => router.push('/duplicate-assets')}
@@ -218,7 +218,7 @@ export function AppHeader() {
                   {/* ผู้ใช้งาน - Collapsible */}
                   <Collapsible open={usersOpen} onOpenChange={setUsersOpen}>
                     <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between px-2 py-2 text-sm font-semibold text-green-600 hover:bg-green-50 rounded cursor-pointer">
+                      <div className="flex items-center justify-between px-2 py-2 text-sm font-semibold text-black hover:bg-green-50 rounded cursor-pointer">
                         <span>ผู้ใช้งาน</span>
                         <ChevronRight className={`h-4 w-4 transition-transform ${usersOpen ? 'rotate-90' : ''}`} />
                       </div>
@@ -243,12 +243,10 @@ export function AppHeader() {
                   
                   <DropdownMenuSeparator />
                   
-                  <DropdownMenuSeparator />
-                  
                   {/* ตั้งค่าระบบ - Collapsible */}
                   <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
                     <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between px-2 py-2 text-sm font-semibold text-purple-600 hover:bg-purple-50 rounded cursor-pointer">
+                      <div className="flex items-center justify-between px-2 py-2 text-sm font-semibold text-black hover:bg-purple-50 rounded cursor-pointer">
                         <span>ตั้งค่าระบบ</span>
                         <ChevronRight className={`h-4 w-4 transition-transform ${settingsOpen ? 'rotate-90' : ''}`} />
                       </div>

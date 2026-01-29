@@ -429,12 +429,20 @@ function MAChecklistPage() {
     
     // ต้องทำครบทุกรายการ
     if (completedCount !== checklist.length) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'ยังทำไม่ครบ',
-        text: `กรุณาตรวจสอบให้ครบทั้ง ${checklist.length} รายการก่อนบันทึก MA เสร็จสิ้น (ทำไปแล้ว ${completedCount}/${checklist.length})`,
-        confirmButtonText: 'ตกลง'
-      })
+      // ปิด dialog ก่อนแสดง alert เพื่อไม่ให้ z-index ทับกัน
+      setIsDialogOpen(false)
+      
+      setTimeout(() => {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ยังทำไม่ครบ',
+          text: `กรุณาตรวจสอบให้ครบทั้ง ${checklist.length} รายการก่อนบันทึก MA เสร็จสิ้น (ทำไปแล้ว ${completedCount}/${checklist.length})`,
+          confirmButtonText: 'ตกลง'
+        }).then(() => {
+          // เปิด dialog กลับมาหลังจากกดตกลง
+          setIsDialogOpen(true)
+        })
+      }, 100)
       return
     }
 
@@ -968,11 +976,6 @@ function MAChecklistPage() {
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                                <span className="text-green-600 font-bold text-sm">
-                                  {dept.charAt(0).toUpperCase()}
-                                </span>
-                              </div>
                               <div>
                                 <p className="font-bold text-lg">{dept}</p>
                                 <p className="text-sm text-muted-foreground">

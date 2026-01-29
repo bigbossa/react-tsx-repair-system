@@ -211,9 +211,10 @@ interface AssetsDataTableProps {
   onFilterDepartmentChange: (value: string) => void
   onFilterCompanyChange: (value: string) => void
   onSearchChange?: (value: string) => void
+  onRefresh?: () => void
 }
 
-export function AssetsDataTable({ data, filterSite, filterCategory, filterDepartment, filterCompany, search = '', departments = [], sites = [], categories = [], companies = [], onFilterSiteChange, onFilterCategoryChange, onFilterDepartmentChange, onFilterCompanyChange, onSearchChange }: AssetsDataTableProps) {
+export function AssetsDataTable({ data, filterSite, filterCategory, filterDepartment, filterCompany, search = '', departments = [], sites = [], categories = [], companies = [], onFilterSiteChange, onFilterCategoryChange, onFilterDepartmentChange, onFilterCompanyChange, onSearchChange, onRefresh }: AssetsDataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [searchInput, setSearchInput] = React.useState(search)
@@ -624,7 +625,10 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
                 if (result.success) {
                   alert('อัพเดทข้อมูลสำเร็จ')
                   setEditAsset(null)
-                  window.location.reload()
+                  // เรียก callback เพื่อรีเฟรชข้อมูลโดยไม่รีเซ็ตฟิลเตอร์
+                  if (onRefresh) {
+                    onRefresh()
+                  }
                 } else {
                   alert('เกิดข้อผิดพลาด: ' + result.error)
                 }

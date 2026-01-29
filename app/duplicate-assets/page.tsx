@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Copy, AlertTriangle, FileText, RefreshCw, CheckCircle2, Eye, Pencil } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Loader2, Copy, AlertTriangle, FileText, RefreshCw, CheckCircle2, Eye, Pencil, Search, X } from 'lucide-react'
 import { AppHeader } from '@/components/app-header'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -32,12 +33,109 @@ export default function DuplicateAssetsPage() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editForm, setEditForm] = useState<Partial<Asset>>({})
   const [saving, setSaving] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCompany, setSelectedCompany] = useState('all')
+  const [selectedSite, setSelectedSite] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedDepartment, setSelectedDepartment] = useState('all')
 
   useEffect(() => {
     if (user) {
       checkDuplicates()
     }
   }, [user])
+
+  // กรองข้อมูล Duplicate Assets ตามเงื่อนไข
+  const filteredDuplicates = duplicateAssets.filter(dup => {
+    // กรองตาม items ที่ตรงกับเงื่อนไข
+    const filteredItems = dup.items.filter(item => {
+      const matchesSearch = !searchQuery || 
+        (item.asset_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.site?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.device_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.ip_address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.category?.toLowerCase().includes(searchQuery.toLowerCase()))
+      
+      const matchesCompany = selectedCompany === 'all' || item.company === selectedCompany
+      const matchesSite = selectedSite === 'all' || item.site === selectedSite
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory
+      const matchesDepartment = selectedDepartment === 'all' || item.department === selectedDepartment
+      
+      return matchesSearch && matchesCompany && matchesSite && matchesCategory && matchesDepartment
+    })
+    
+    // เก็บเฉพาะ duplicate group ที่มี items ที่ผ่านการกรอง
+    return filteredItems.length > 0
+  }).map(dup => ({
+    ...dup,
+    items: dup.items.filter(item => {
+      const matchesSearch = !searchQuery || 
+        (item.asset_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.site?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.device_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.ip_address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.category?.toLowerCase().includes(searchQuery.toLowerCase()))
+      
+      const matchesCompany = selectedCompany === 'all' || item.company === selectedCompany
+      const matchesSite = selectedSite === 'all' || item.site === selectedSite
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory
+      const matchesDepartment = selectedDepartment === 'all' || item.department === selectedDepartment
+      
+      return matchesSearch && matchesCompany && matchesSite && matchesCategory && matchesDepartment
+    }),
+    count: dup.items.filter(item => {
+      const matchesSearch = !searchQuery || 
+        (item.asset_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.site?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.device_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.ip_address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         item.category?.toLowerCase().includes(searchQuery.toLowerCase()))
+      
+      const matchesCompany = selectedCompany === 'all' || item.company === selectedCompany
+      const matchesSite = selectedSite === 'all' || item.site === selectedSite
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory
+      const matchesDepartment = selectedDepartment === 'all' || item.department === selectedDepartment
+      
+      return matchesSearch && matchesCompany && matchesSite && matchesCategory && matchesDepartment
+    }).length
+  }))
+
+  // สร้าง arrays ของค่าที่ไม่ซ้ำกันสำหรับ filter dropdowns
+  const allItems = duplicateAssets.flatMap(dup => dup.items)
+  const companies = Array.from(new Set(allItems.map(item => item.company).filter(Boolean))).sort()
+  const sites = Array.from(new Set(allItems.map(item => item.site).filter(Boolean))).sort()
+  const categories = Array.from(new Set(allItems.map(item => item.category).filter(Boolean))).sort()
+  const departments = Array.from(new Set(allItems.map(item => item.department).filter(Boolean))).sort()
+
+  const filteredTotalDuplicateItems = filteredDuplicates.reduce((sum, d) => sum + d.count, 0)
+
+  const clearFilters = () => {
+    setSearchQuery('')
+    setSelectedCompany('all')
+    setSelectedSite('all')
+    setSelectedCategory('all')
+    setSelectedDepartment('all')
+  }
+
+  const activeFiltersCount = [
+    searchQuery,
+    selectedCompany !== 'all',
+    selectedSite !== 'all',
+    selectedCategory !== 'all',
+    selectedDepartment !== 'all'
+  ].filter(Boolean).length
 
   const checkDuplicates = async () => {
     try {
@@ -166,6 +264,8 @@ export default function DuplicateAssetsPage() {
             <thead>
               <tr>
                 <th style="width: 30px;">#</th>
+                <th>Asset Code</th>
+                <th>รหัสพนักงาน</th>
                 <th>ผู้ใช้งาน</th>
                 <th>บริษัท</th>
                 <th>สาขา</th>
@@ -181,6 +281,8 @@ export default function DuplicateAssetsPage() {
         htmlContent += `
           <tr>
             <td style="text-align: center;">${itemIdx + 1}</td>
+            <td><strong>${item.asset_code || '-'}</strong></td>
+            <td>${item.user_id || '-'}</td>
             <td>${item.user_name || '-'}</td>
             <td>${item.company || '-'}</td>
             <td>${item.site || '-'}</td>
@@ -282,23 +384,178 @@ export default function DuplicateAssetsPage() {
             </div>
           </CardHeader>
           <CardContent>
+            {/* Filter Section */}
+            <Card className="mb-6 border-2 border-dashed">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    ตัวกรองข้อมูล
+                  </span>
+                  {activeFiltersCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="h-8 gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                      ล้างตัวกรอง ({activeFiltersCount})
+                    </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Search */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">ค้นหา</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="ค้นหาทุกฟิลด์..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Company Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">บริษัท</label>
+                    <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="ทั้งหมด" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">ทั้งหมด</SelectItem>
+                        {companies.map((company) => (
+                          <SelectItem key={company} value={company}>
+                            {company}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Site Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">สาขา</label>
+                    <Select value={selectedSite} onValueChange={setSelectedSite}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="ทั้งหมด" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">ทั้งหมด</SelectItem>
+                        {sites.map((site) => (
+                          <SelectItem key={site} value={site}>
+                            {site}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Category Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">หมวดหมู่</label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="ทั้งหมด" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">ทั้งหมด</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Department Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">แผนก</label>
+                    <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="ทั้งหมด" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">ทั้งหมด</SelectItem>
+                        {departments.map((department) => (
+                          <SelectItem key={department} value={department}>
+                            {department}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Active Filters Summary */}
+                {activeFiltersCount > 0 && (
+                  <div className="mt-4 pt-4 border-t flex flex-wrap gap-2">
+                    <span className="text-sm text-muted-foreground">ตัวกรองที่ใช้งาน:</span>
+                    {searchQuery && (
+                      <Badge variant="secondary" className="gap-1">
+                        ค้นหา: {searchQuery}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => setSearchQuery('')} />
+                      </Badge>
+                    )}
+                    {selectedCompany !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        บริษัท: {selectedCompany}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedCompany('all')} />
+                      </Badge>
+                    )}
+                    {selectedSite !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        สาขา: {selectedSite}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedSite('all')} />
+                      </Badge>
+                    )}
+                    {selectedCategory !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        หมวดหมู่: {selectedCategory}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedCategory('all')} />
+                      </Badge>
+                    )}
+                    {selectedDepartment !== 'all' && (
+                      <Badge variant="secondary" className="gap-1">
+                        แผนก: {selectedDepartment}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => setSelectedDepartment('all')} />
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card className={duplicateAssets.length > 0 ? 'border-orange-200 bg-orange-50' : 'border-green-200 bg-green-50'}>
+              <Card className={filteredDuplicates.length > 0 ? 'border-orange-200 bg-orange-50' : 'border-green-200 bg-green-50'}>
                 <CardContent className="pt-6">
                   <div className="text-center">
-                    <p className={`text-4xl font-bold ${duplicateAssets.length > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                      {duplicateAssets.length}
+                    <p className={`text-4xl font-bold ${filteredDuplicates.length > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                      {filteredDuplicates.length}
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">Asset Code ที่ซ้ำ</p>
+                    {activeFiltersCount > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">จาก {duplicateAssets.length} ทั้งหมด</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
               <Card className="border-blue-200 bg-blue-50">
                 <CardContent className="pt-6">
                   <div className="text-center">
-                    <p className="text-4xl font-bold text-blue-600">{totalDuplicateItems}</p>
+                    <p className="text-4xl font-bold text-blue-600">{filteredTotalDuplicateItems}</p>
                     <p className="text-sm text-muted-foreground mt-1">รายการที่ซ้ำทั้งหมด</p>
+                    {activeFiltersCount > 0 && (
+                      <p className="text-xs text-muted-foreground mt-1">จาก {totalDuplicateItems} ทั้งหมด</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -317,17 +574,27 @@ export default function DuplicateAssetsPage() {
                 <Loader2 className="h-12 w-12 animate-spin text-orange-500 mb-4" />
                 <p className="text-lg text-muted-foreground">กำลังตรวจสอบข้อมูล...</p>
               </div>
-            ) : duplicateAssets.length === 0 ? (
+            ) : filteredDuplicates.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-green-600">
                 <div className="h-24 w-24 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-lg">
                   <CheckCircle2 className="h-12 w-12" />
                 </div>
-                <p className="text-2xl font-semibold">ไม่พบ Asset Code ซ้ำ!</p>
-                <p className="text-base text-muted-foreground mt-2">ข้อมูลทั้งหมดไม่มี Asset Code ที่ซ้ำกัน</p>
+                <p className="text-2xl font-semibold">
+                  {activeFiltersCount > 0 ? 'ไม่พบข้อมูลที่ตรงกับตัวกรอง' : 'ไม่พบ Asset Code ซ้ำ!'}
+                </p>
+                <p className="text-base text-muted-foreground mt-2">
+                  {activeFiltersCount > 0 ? 'ลองเปลี่ยนเงื่อนไขการกรองข้อมูล' : 'ข้อมูลทั้งหมดไม่มี Asset Code ที่ซ้ำกัน'}
+                </p>
+                {activeFiltersCount > 0 && (
+                  <Button onClick={clearFilters} variant="outline" className="mt-4 gap-2">
+                    <X className="h-4 w-4" />
+                    ล้างตัวกรอง
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
-                {duplicateAssets.map((dup, idx) => (
+                {filteredDuplicates.map((dup, idx) => (
                   <Card key={idx} className="border-orange-200 shadow-sm hover:shadow-md transition-shadow">
                     <CardHeader className="py-4 px-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-t-lg">
                       <div className="flex items-center justify-between">
@@ -350,6 +617,8 @@ export default function DuplicateAssetsPage() {
                           <TableHeader>
                             <TableRow className="bg-gray-50">
                               <TableHead className="w-[60px] text-center font-semibold">#</TableHead>
+                              <TableHead className="font-semibold min-w-[120px]">Asset Code</TableHead>
+                              <TableHead className="font-semibold min-w-[100px]">รหัสพนักงาน</TableHead>
                               <TableHead className="font-semibold min-w-[150px]">ผู้ใช้งาน</TableHead>
                               <TableHead className="font-semibold min-w-[100px]">บริษัท</TableHead>
                               <TableHead className="font-semibold min-w-[100px]">สาขา</TableHead>
@@ -363,6 +632,10 @@ export default function DuplicateAssetsPage() {
                             {dup.items.map((item, itemIdx) => (
                               <TableRow key={itemIdx} className="hover:bg-orange-50/50">
                                 <TableCell className="text-center font-medium">{itemIdx + 1}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="font-mono">{item.asset_code || '-'}</Badge>
+                                </TableCell>
+                                <TableCell>{item.user_id || '-'}</TableCell>
                                 <TableCell className="font-medium">{item.user_name || '-'}</TableCell>
                                 <TableCell>{item.company || '-'}</TableCell>
                                 <TableCell>{item.site || '-'}</TableCell>

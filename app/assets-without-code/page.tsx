@@ -8,11 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Loader2, Hash, AlertTriangle, FileText, RefreshCw, CheckCircle2, Eye, Pencil } from 'lucide-react'
+import { Loader2, Hash, AlertTriangle, FileText, RefreshCw, CheckCircle2, Eye, Pencil, Search } from 'lucide-react'
 import { AppHeader } from '@/components/app-header'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import Swal from 'sweetalert2'
 
 export default function AssetsWithoutCodePage() {
@@ -26,6 +27,13 @@ export default function AssetsWithoutCodePage() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [editForm, setEditForm] = useState<Partial<Asset>>({})
   const [saving, setSaving] = useState(false)
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCompany, setSelectedCompany] = useState<string>('all')
+  const [selectedSite, setSelectedSite] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all')
 
   useEffect(() => {
     if (user) {
@@ -62,6 +70,53 @@ export default function AssetsWithoutCodePage() {
       setLoading(false)
     }
   }
+
+  // ฟังก์ชันกรองข้อมูล
+  const filteredAssets = assetsWithoutCode.filter((asset) => {
+    // กรองตามบริษัท
+    if (selectedCompany !== 'all' && asset.company !== selectedCompany) {
+      return false
+    }
+
+    // กรองตามสาขา
+    if (selectedSite !== 'all' && asset.site !== selectedSite) {
+      return false
+    }
+
+    // กรองตามหมวดหมู่
+    if (selectedCategory !== 'all' && asset.category !== selectedCategory) {
+      return false
+    }
+
+    // กรองตามแผนก
+    if (selectedDepartment !== 'all' && asset.department !== selectedDepartment) {
+      return false
+    }
+
+    // ค้นหา
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      return (
+        asset.asset_code?.toLowerCase().includes(query) ||
+        asset.user_name?.toLowerCase().includes(query) ||
+        asset.userid?.toLowerCase().includes(query) ||
+        asset.device_name?.toLowerCase().includes(query) ||
+        asset.ref_devicename?.toLowerCase().includes(query) ||
+        asset.category?.toLowerCase().includes(query) ||
+        asset.company?.toLowerCase().includes(query) ||
+        asset.site?.toLowerCase().includes(query) ||
+        asset.department?.toLowerCase().includes(query)
+      )
+    }
+
+    return true
+  })
+
+  // ดึงข้อมูล unique values สำหรับ filters
+  const companies = Array.from(new Set(assetsWithoutCode.map(a => a.company).filter(Boolean))).sort()
+  const sites = Array.from(new Set(assetsWithoutCode.map(a => a.site).filter(Boolean))).sort()
+  const categories = Array.from(new Set(assetsWithoutCode.map(a => a.category).filter(Boolean))).sort()
+  const departments = Array.from(new Set(assetsWithoutCode.map(a => a.department).filter(Boolean))).sort()
 
   // ฟังก์ชัน Export PDF
   const exportToPDF = () => {
@@ -144,6 +199,8 @@ export default function AssetsWithoutCodePage() {
             <thead>
               <tr>
                 <th style="width: 40px;">ลำดับ</th>
+                <th>Asset Code</th>
+                <th>รหัสพนักงาน</th>
                 <th>ผู้ใช้งาน</th>
                 <th>อุปกรณ์</th>
                 <th>หมวดหมู่</th>
@@ -156,6 +213,8 @@ export default function AssetsWithoutCodePage() {
               ${assetsWithoutCode.map((asset, idx) => `
                 <tr>
                   <td style="text-align: center;">${idx + 1}</td>
+                  <td>${asset.asset_code || '-'}</td>
+                  <td>${asset.userid || '-'}</td>
                   <td>${asset.user_name || '-'}</td>
                   <td>${asset.device_name || asset.ref_devicename || '-'}</td>
                   <td>${asset.category || '-'}</td>
@@ -252,14 +311,145 @@ export default function AssetsWithoutCodePage() {
           </p>
         )}
 
+        {/* Filters Section */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              {/* Search */}
+              <div className="xl:col-span-2">
+                <Label className="text-xs font-medium mb-2 block">ค้นหา</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="ค้นหา Asset Code, ผู้ใช้งาน, อุปกรณ์..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {/* Company Filter */}
+              <div>
+                <Label className="text-xs font-medium mb-2 block">บริษัท</Label>
+                <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="ทั้งหมด" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทั้งหมด</SelectItem>
+                    {companies.map((company) => (
+                      <SelectItem key={company} value={company}>
+                        {company}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Site Filter */}
+              <div>
+                <Label className="text-xs font-medium mb-2 block">สาขา</Label>
+                <Select value={selectedSite} onValueChange={setSelectedSite}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="ทั้งหมด" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทั้งหมด</SelectItem>
+                    {sites.map((site) => (
+                      <SelectItem key={site} value={site}>
+                        {site}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Category Filter */}
+              <div>
+                <Label className="text-xs font-medium mb-2 block">หมวดหมู่</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="ทั้งหมด" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทั้งหมด</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Department Filter */}
+              <div>
+                <Label className="text-xs font-medium mb-2 block">แผนก</Label>
+                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="ทั้งหมด" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ทั้งหมด</SelectItem>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept} value={dept}>
+                        {dept}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Filter Summary */}
+            {(searchQuery || selectedCompany !== 'all' || selectedSite !== 'all' || selectedCategory !== 'all' || selectedDepartment !== 'all') && (
+              <div className="mt-4 flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-muted-foreground">ตัวกรองที่ใช้:</span>
+                {searchQuery && (
+                  <Badge variant="secondary" className="gap-1">
+                    ค้นหา: {searchQuery}
+                  </Badge>
+                )}
+                {selectedCompany !== 'all' && (
+                  <Badge variant="secondary">บริษัท: {selectedCompany}</Badge>
+                )}
+                {selectedSite !== 'all' && (
+                  <Badge variant="secondary">สาขา: {selectedSite}</Badge>
+                )}
+                {selectedCategory !== 'all' && (
+                  <Badge variant="secondary">หมวดหมู่: {selectedCategory}</Badge>
+                )}
+                {selectedDepartment !== 'all' && (
+                  <Badge variant="secondary">แผนก: {selectedDepartment}</Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery('')
+                    setSelectedCompany('all')
+                    setSelectedSite('all')
+                    setSelectedCategory('all')
+                    setSelectedDepartment('all')
+                  }}
+                  className="h-6 text-xs"
+                >
+                  ล้างตัวกรอง
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <div className="space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className={assetsWithoutCode.length > 0 ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
+            <Card className={filteredAssets.length > 0 ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className={`text-4xl font-bold ${assetsWithoutCode.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {assetsWithoutCode.length}
+                  <p className={`text-4xl font-bold ${filteredAssets.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {filteredAssets.length}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">ไม่มีรหัสทรัพย์สิน</p>
                 </div>
@@ -269,7 +459,7 @@ export default function AssetsWithoutCodePage() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-4xl font-bold text-blue-600">
-                    {assetsWithoutCode.filter(a => a.user_name?.trim()).length}
+                    {filteredAssets.filter(a => a.user_name?.trim()).length}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">มีผู้ใช้งาน</p>
                 </div>
@@ -279,7 +469,7 @@ export default function AssetsWithoutCodePage() {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <p className="text-4xl font-bold text-orange-600">
-                    {assetsWithoutCode.filter(a => !a.user_name?.trim() || a.user_name === '-').length}
+                    {filteredAssets.filter(a => !a.user_name?.trim() || a.user_name === '-').length}
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">ไม่มีผู้ใช้งาน</p>
                 </div>
@@ -292,13 +482,17 @@ export default function AssetsWithoutCodePage() {
               <Loader2 className="h-12 w-12 animate-spin text-red-500 mb-4" />
               <p className="text-lg text-muted-foreground">กำลังตรวจสอบข้อมูล...</p>
             </div>
-          ) : assetsWithoutCode.length === 0 ? (
+          ) : filteredAssets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-green-600">
               <div className="h-24 w-24 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-lg">
                 <CheckCircle2 className="h-12 w-12" />
               </div>
               <p className="text-2xl font-semibold">ยอดเยี่ยม!</p>
-              <p className="text-base text-muted-foreground mt-2">ทรัพย์สินทั้งหมดมีรหัสทรัพย์สินครบถ้วน</p>
+              <p className="text-base text-muted-foreground mt-2">
+                {assetsWithoutCode.length === 0 
+                  ? 'ทรัพย์สินทั้งหมดมีรหัสทรัพย์สินครบถ้วน' 
+                  : 'ไม่พบข้อมูลที่ตรงกับเงื่อนไขการค้นหา'}
+              </p>
             </div>
           ) : (
             <Card className="border-red-200 shadow-sm">
@@ -313,12 +507,12 @@ export default function AssetsWithoutCodePage() {
                         ไม่มีรหัสทรัพย์สิน (Asset Code)
                       </CardTitle>
                       <CardDescription className="text-sm">
-                        พบ {assetsWithoutCode.length} รายการที่ยังไม่มีการกำหนดรหัสทรัพย์สิน
+                        แสดง {filteredAssets.length} จาก {assetsWithoutCode.length} รายการ
                       </CardDescription>
                     </div>
                   </div>
                   <Badge variant="destructive" className="text-base px-4 py-1">
-                    {assetsWithoutCode.length} รายการ
+                    {filteredAssets.length} รายการ
                   </Badge>
                 </div>
               </CardHeader>
@@ -327,6 +521,8 @@ export default function AssetsWithoutCodePage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>
+                      <TableHead>Asset Code</TableHead>
+                      <TableHead>รหัสพนักงาน</TableHead>
                       <TableHead>ผู้ใช้งาน</TableHead>
                       <TableHead>อุปกรณ์</TableHead>
                       <TableHead>หมวดหมู่</TableHead>
@@ -337,9 +533,23 @@ export default function AssetsWithoutCodePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {assetsWithoutCode.map((asset, idx) => (
+                    {filteredAssets.map((asset, idx) => (
                       <TableRow key={idx} className="hover:bg-red-50">
                         <TableCell className="font-medium text-center">{idx + 1}</TableCell>
+                        <TableCell>
+                          {asset.asset_code ? (
+                            <Badge variant="outline">{asset.asset_code}</Badge>
+                          ) : (
+                            <span className="text-red-500 text-xs">ไม่มี</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {asset.userid ? (
+                            <span className="text-sm">{asset.userid}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">-</span>
+                          )}
+                        </TableCell>
                         <TableCell>
                           {asset.user_name ? (
                             <span>{asset.user_name}</span>
@@ -420,16 +630,20 @@ export default function AssetsWithoutCodePage() {
                 <p className="font-medium text-red-600">{selectedAsset.asset_code || 'ไม่มีรหัสทรัพย์สิน'}</p>
               </div>
               <div>
+                <Label className="text-muted-foreground">รหัสพนักงาน</Label>
+                <p className="font-medium">{selectedAsset.userid || '-'}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">ผู้ใช้งาน</Label>
+                <p className="font-medium">{selectedAsset.user_name || '-'}</p>
+              </div>
+              <div>
                 <Label className="text-muted-foreground">อุปกรณ์</Label>
                 <p className="font-medium">{selectedAsset.device_name || selectedAsset.ref_devicename || '-'}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">หมวดหมู่</Label>
                 <p className="font-medium">{selectedAsset.category || '-'}</p>
-              </div>
-              <div>
-                <Label className="text-muted-foreground">ผู้ใช้งาน</Label>
-                <p className="font-medium">{selectedAsset.user_name || '-'}</p>
               </div>
               <div>
                 <Label className="text-muted-foreground">บริษัท</Label>

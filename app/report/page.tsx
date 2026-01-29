@@ -82,12 +82,25 @@ interface Asset {
   category: string;
 }
 
+interface MARecord {
+  id: number;
+  asset_code: string;
+  device_name: string;
+  category: string;
+  company: string;
+  site: string;
+  department: string;
+  checked_at: string;
+  checked_by: string;
+}
+
 export default function ReportPage() {
   const router = useRouter();
   const { user, logout, isLoading } = useAuth();
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [maRecords, setMaRecords] = useState<MARecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [expiringLicensesCount, setExpiringLicensesCount] = useState(0);
   const hasShownLicenseAlert = useRef(false);
@@ -365,11 +378,24 @@ export default function ReportPage() {
         fetchTickets(),
         fetchAssets(),
         fetchCompanies(),
+        fetchMARecords(),
       ]);
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMARecords = async () => {
+    try {
+      const response = await apiFetch('/api/maintenance-records');
+      if (!response.ok) throw new Error('Failed to fetch MA records');
+      const data = await response.json();
+      setMaRecords(data.data || []);
+    } catch (error) {
+      console.error('Error fetching MA records:', error);
+      setMaRecords([]);
     }
   };
 
@@ -918,7 +944,7 @@ export default function ReportPage() {
         </div>
 
         <Tabs defaultValue="tickets" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 mb-6 sm:mb-6 transition-all duration-300 ease-in-out scroll-smooth">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-1 mb-6 sm:mb-6 transition-all duration-300 ease-in-out scroll-smooth">
             <TabsTrigger
               value="tickets"
               className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2.5 sm:py-2.5 transition-all duration-200 hover:scale-105 active:scale-95"
@@ -926,6 +952,14 @@ export default function ReportPage() {
               <Wrench className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden sm:inline">การแจ้งซ่อม</span>
               <span className="sm:hidden">แจ้งซ่อม</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="ma-report"
+              className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2.5 sm:py-2.5 transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              <Package className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Report MA</span>
+              <span className="sm:hidden">MA</span>
             </TabsTrigger>
             <TabsTrigger
               value="sites"
@@ -1638,7 +1672,185 @@ export default function ReportPage() {
             </Card>
           </TabsContent>
 
-          {/* Tab 2: สถิติทรัพย์สินตามบริษัท */}
+          {/* Tab 2: Report MA */}
+          <TabsContent
+            value="ma-report"
+            className="space-y-3 sm:space-y-4 mt-6 sm:mt-0 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          >
+            {(() => {
+              // คำนวณสถิติ MA
+              const totalAssets = assets.filter(a => {
+                const cat = (a.category || '').toLowerCase();
+                return cat === 'computer' || cat === 'pc&computer' || cat === 'notebook' || cat === 'printer';
+              }).length;
+
+              const currentMonth = new Date().getMonth();
+              const currentYear = new Date().getFullYear();
+
+              const maThisMonth = maRecords.filter(record => {
+                const recordDate = new Date(record.checked_at);
+                return recordDate.getMonth() === currentMonth && recordDate.getFullYear() === currentYear;
+              });
+
+              const uniqueAssetCodes = new Set(maThisMonth.map(r => r.asset_code));
+              const completedAssets = uniqueAssetCodes.size;
+              const percentage = totalAssets > 0 ? (completedAssets / totalAssets * 100) : 0;
+
+              // สถิติตามบริษัท
+              const maByCompany: { [key: string]: { total: number; completed: Set<string> } } = {};
+              assets.forEach(asset => {
+                const cat = (asset.category || '').toLowerCase();
+                if (cat === 'computer' || cat === 'pc&computer' || cat === 'notebook' || cat === 'printer') {
+                  if (!maByCompany[asset.company]) {
+                    maByCompany[asset.company] = { total: 0, completed: new Set() };
+                  }
+                  maByCompany[asset.company].total++;
+                }
+              });
+
+              maThisMonth.forEach(record => {
+                if (maByCompany[record.company]) {
+                  maByCompany[record.company].completed.add(record.asset_code);
+                }
+              });
+
+              return (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <Card className="overflow-hidden">
+                      <CardHeader className="pb-2 px-3 sm:px-6 sm:pb-3">
+                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+                          อุปกรณ์ทั้งหมด
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-3 sm:px-6 pb-8 relative">
+                        <div className="text-2xl sm:text-3xl md:text-4xl text-right">
+                          {totalAssets}
+                        </div>
+                        <p className="text-xs text-muted-foreground absolute bottom-3 right-3">
+                          รายการ
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="overflow-hidden">
+                      <CardHeader className="pb-2 px-3 sm:px-6 sm:pb-3">
+                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+                          ตรวจแล้วเดือนนี้
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-3 sm:px-6 pb-8 relative">
+                        <div className="text-2xl sm:text-3xl md:text-4xl text-green-600 text-right">
+                          {completedAssets}
+                        </div>
+                        <p className="text-xs text-muted-foreground absolute bottom-3 right-3">
+                          รายการ
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="overflow-hidden">
+                      <CardHeader className="pb-2 px-3 sm:px-6 sm:pb-3">
+                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+                          ยังไม่ได้ตรวจ
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-3 sm:px-6 pb-8 relative">
+                        <div className="text-2xl sm:text-3xl md:text-4xl text-orange-600 text-right">
+                          {totalAssets - completedAssets}
+                        </div>
+                        <p className="text-xs text-muted-foreground absolute bottom-3 right-3">
+                          รายการ
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="overflow-hidden">
+                      <CardHeader className="pb-2 px-3 sm:px-6 sm:pb-3">
+                        <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
+                          ความคืบหน้า
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-3 sm:px-6 pb-8 relative">
+                        <div className={`text-2xl sm:text-3xl md:text-4xl text-right ${
+                          percentage >= 100 ? 'text-green-600' :
+                          percentage >= 75 ? 'text-blue-600' :
+                          percentage >= 50 ? 'text-yellow-600' : 'text-red-600'
+                        }`}>
+                          {percentage.toFixed(1)}%
+                        </div>
+                        <p className="text-xs text-muted-foreground absolute bottom-3 right-3">
+                          เสร็จสิ้น
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base sm:text-lg">
+                        ความคืบหน้า MA ตามบริษัท
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {Object.entries(maByCompany)
+                          .sort((a, b) => {
+                            const percentA = a[1].total > 0 ? (a[1].completed.size / a[1].total * 100) : 0;
+                            const percentB = b[1].total > 0 ? (b[1].completed.size / b[1].total * 100) : 0;
+                            return percentB - percentA;
+                          })
+                          .map(([company, stats]) => {
+                            const companyPercentage = stats.total > 0 ? (stats.completed.size / stats.total * 100) : 0;
+                            return (
+                              <div key={company} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <Building2 className="h-5 w-5 text-blue-600 shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium truncate">{getCompanyName(company)}</p>
+                                      <p className="text-sm text-muted-foreground">
+                                        {stats.completed.size}/{stats.total} รายการ
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Badge
+                                    className={`shrink-0 ${
+                                      companyPercentage >= 100 ? 'bg-green-600' :
+                                      companyPercentage >= 75 ? 'bg-blue-600' :
+                                      companyPercentage >= 50 ? 'bg-yellow-600' : 'bg-red-600'
+                                    }`}
+                                  >
+                                    {companyPercentage.toFixed(1)}%
+                                  </Badge>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                  <div
+                                    className={`h-2.5 rounded-full transition-all duration-500 ${
+                                      companyPercentage >= 100 ? 'bg-green-600' :
+                                      companyPercentage >= 75 ? 'bg-blue-600' :
+                                      companyPercentage >= 50 ? 'bg-yellow-600' : 'bg-red-600'
+                                    }`}
+                                    style={{ width: `${companyPercentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        {Object.keys(maByCompany).length === 0 && (
+                          <div className="text-center text-muted-foreground py-8">
+                            ยังไม่มีข้อมูล
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              );
+            })()}
+          </TabsContent>
+
+          {/* Tab 3: สถิติทรัพย์สินตามบริษัท */}
           <TabsContent
             value="sites"
             className="space-y-3 sm:space-y-4 mt-6 sm:mt-0 animate-in fade-in slide-in-from-bottom-4 duration-300"

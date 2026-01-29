@@ -572,6 +572,7 @@ export default function AssetsPage() {
                 onFilterCategoryChange={setFilterCategory}
                 onFilterDepartmentChange={setFilterDepartment}
                 onSearchChange={setSearch}
+                onRefresh={fetchAssets}
               />
               
               {/* Pagination */}
@@ -630,7 +631,10 @@ export default function AssetsPage() {
       <AddAssetDialog 
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        onSuccess={fetchAssets}
+        onSuccess={() => {
+          // รีเฟรชข้อมูลโดยไม่รีเซ็ตฟิลเตอร์
+          fetchAssets()
+        }}
         departments={departments}
         sites={sites}
         categories={categories}
@@ -640,7 +644,10 @@ export default function AssetsPage() {
       <ImportExcelDialog 
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
-        onSuccess={fetchAssets}
+        onSuccess={() => {
+          // รีเฟรชข้อมูลโดยไม่รีเซ็ตฟิลเตอร์
+          fetchAssets()
+        }}
       />
 
       <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>

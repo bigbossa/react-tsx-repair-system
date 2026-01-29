@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ChevronDown, Eye, Pencil } from 'lucide-react'
+import { ArrowUpDown, ChevronDown, Eye, Pencil, Sparkles, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -119,17 +119,21 @@ export const columns: ColumnDef<Asset>[] = [
   {
     accessorKey: 'ip_address',
     header: 'IP Address',
-    cell: ({ row }) => <div className="font-mono text-xs">{row.getValue('ip_address') || '-'}</div>,
+    cell: ({ row }) => {
+      const ip = row.getValue('ip_address') as string
+      const cleanIp = ip ? ip.split('.').map(octet => parseInt(octet, 10).toString()).join('.') : '-'
+      return <div className="text-xs">{cleanIp}</div>
+    },
   },
   {
     accessorKey: 'mac_address',
     header: 'MAC Address',
-    cell: ({ row }) => <div className="font-mono text-xs">{row.getValue('mac_address') || '-'}</div>,
+    cell: ({ row }) => <div className="text-xs">{row.getValue('mac_address') || '-'}</div>,
   },
   {
     accessorKey: 'serial_number',
     header: 'Serial Number',
-    cell: ({ row }) => <div className="font-mono text-xs">{row.getValue('serial_number') || '-'}</div>,
+    cell: ({ row }) => <div className="text-xs">{row.getValue('serial_number') || '-'}</div>,
   },
   {
     accessorKey: 'number',
@@ -278,6 +282,7 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
   const [rowSelection, setRowSelection] = React.useState({})
   const [viewAsset, setViewAsset] = React.useState<Asset | null>(null)
   const [editAsset, setEditAsset] = React.useState<Asset | null>(null)
+  const [isGenerating, setIsGenerating] = React.useState(false)
 
   // Use departments from props (fetched via API distinct), fallback to unique from data
   const departmentsFromData = React.useMemo(() => {
@@ -291,6 +296,49 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
     })
     return Array.from(set).sort((a, b) => a.localeCompare(b))
   }, [departments, data])
+
+  const handleGenerateCode = async () => {
+    setIsGenerating(true)
+    try {
+      const now = new Date()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const year = String(now.getFullYear())
+      const prefix = `IT${month}${year}`
+
+      // Query existing assets with the same prefix
+      const response = await fetch(`/repair/api/assets?search=${prefix}&limit=1000`)
+      const result = await response.json()
+
+      let sequence = 1
+      if (result.success && result.data && result.data.length > 0) {
+        // Find the highest sequence number
+        const sequences = result.data
+          .filter((asset: any) => asset.asset_code?.startsWith(prefix))
+          .map((asset: any) => {
+            const match = asset.asset_code?.match(/\d{3}$/)
+            return match ? parseInt(match[0], 10) : 0
+          })
+          .filter((seq: number) => !isNaN(seq))
+        
+        if (sequences.length > 0) {
+          sequence = Math.max(...sequences) + 1
+        }
+      }
+
+      const newCode = `${prefix}${String(sequence).padStart(3, '0')}`
+      
+      // Update the input field
+      const assetCodeInput = document.querySelector('input[name="asset_code"]') as HTMLInputElement
+      if (assetCodeInput) {
+        assetCodeInput.value = newCode
+      }
+    } catch (error) {
+      console.error('Error generating asset code:', error)
+      alert('เกิดข้อผิดพลาดในการสร้างรหัสทรัพย์สิน')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   const editDepartments = React.useMemo(() => {
     const dept = (editAsset?.department || '').trim()
@@ -647,7 +695,25 @@ export function AssetsDataTable({ data, filterSite, filterCategory, filterDepart
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium">Asset Code</label>
-                    <Input name="asset_code" defaultValue={editAsset.asset_code} required />
+                    <div className="flex gap-2">
+                      <Input name="asset_code" defaultValue={editAsset.asset_code} required placeholder="IT012026001" />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleGenerateCode}
+                        disabled={isGenerating}
+                        className="shrink-0"
+                      >
+                        {isGenerating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4" />
+                            
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium">รหัสพนักงาน</label>

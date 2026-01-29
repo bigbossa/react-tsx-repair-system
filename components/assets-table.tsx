@@ -141,7 +141,7 @@ export default function AssetsTable() {
                   ) : (
                     assets.map((asset) => (
                       <TableRow key={asset.asset_code}>
-                        <TableCell className="font-medium">
+                        <TableCell>
                           <Badge variant="outline">{asset.asset_code}</Badge>
                         </TableCell>
                         <TableCell>{asset.user_name}</TableCell>
@@ -149,12 +149,12 @@ export default function AssetsTable() {
                         <TableCell>{asset.department}</TableCell>
                         <TableCell>{asset.device_name}</TableCell>
                         <TableCell>{asset.brand}</TableCell>
-                        <TableCell className="text-sm">{asset.cpu}</TableCell>
-                        <TableCell className="text-sm">{asset.ram}</TableCell>
-                        <TableCell className="text-sm">{asset.harddisk}</TableCell>
-                        <TableCell className="font-mono text-xs">{asset.ip_address}</TableCell>
-                        <TableCell className="font-mono text-xs">{asset.mac_address}</TableCell>
-                        <TableCell className="font-mono text-xs">{asset.serial_number}</TableCell>
+                        <TableCell>{asset.cpu}</TableCell>
+                        <TableCell>{asset.ram}</TableCell>
+                        <TableCell>{asset.harddisk}</TableCell>
+                        <TableCell>{asset.ip_address}</TableCell>
+                        <TableCell>{asset.mac_address}</TableCell>
+                        <TableCell>{asset.serial_number}</TableCell>
                         <TableCell>{asset.number}</TableCell>
                         <TableCell className="text-sm">{asset.license}</TableCell>
                         <TableCell>

@@ -1111,7 +1111,7 @@ export default function AssetsPage() {
                                   </span>
                                 </TableCell>
                                 <TableCell>
-                                  <code className="px-2 py-1 rounded bg-gray-100 text-sm font-mono">
+                                  <code className="px-2 py-1 rounded bg-gray-100 ">
                                     {item.ip_address || '-'}
                                   </code>
                                 </TableCell>

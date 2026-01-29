@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Sparkles } from 'lucide-react'
 
 interface AddAssetDialogProps {
   open: boolean
@@ -109,6 +109,44 @@ export function AddAssetDialog({ open, onOpenChange, onSuccess, departments = []
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
+  const handleGenerateCode = async () => {
+    setLoading(true)
+    try {
+      const now = new Date()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const year = String(now.getFullYear())
+      const prefix = `IT${month}${year}`
+
+      // Query existing assets with the same prefix
+      const response = await apiFetch(`/api/assets?search=${prefix}&limit=1000`)
+      const result = await response.json()
+
+      let sequence = 1
+      if (result.success && result.data && result.data.length > 0) {
+        // Find the highest sequence number
+        const sequences = result.data
+          .filter((asset: any) => asset.asset_code?.startsWith(prefix))
+          .map((asset: any) => {
+            const match = asset.asset_code?.match(/\d{3}$/)
+            return match ? parseInt(match[0], 10) : 0
+          })
+          .filter((seq: number) => !isNaN(seq))
+        
+        if (sequences.length > 0) {
+          sequence = Math.max(...sequences) + 1
+        }
+      }
+
+      const newCode = `${prefix}${String(sequence).padStart(3, '0')}`
+      handleChange('asset_code', newCode)
+    } catch (error) {
+      console.error('Error generating asset code:', error)
+      alert('เกิดข้อผิดพลาดในการสร้างรหัสทรัพย์สิน')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -123,12 +161,30 @@ export function AddAssetDialog({ open, onOpenChange, onSuccess, departments = []
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="asset_code">Asset Code *</Label>
-              <Input
-                id="asset_code"
-                value={formData.asset_code}
-                onChange={(e) => handleChange('asset_code', e.target.value)}
-                required
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="asset_code"
+                  value={formData.asset_code}
+                  onChange={(e) => handleChange('asset_code', e.target.value)}
+                  required
+                  placeholder="IT012026001"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleGenerateCode}
+                  disabled={loading}
+                  className="shrink-0"
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-2">
